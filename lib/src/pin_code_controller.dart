@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter_pin_code/src/exceptions/configuration/biometrics_messages_not_provided_exception.dart';
+import 'package:flutter_pin_code/src/exceptions/configuration/biometrics_not_configured_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/controller_not_initialized_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/initialization_already_completed_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/request_again_config_exception.dart';
@@ -10,10 +12,12 @@ import 'package:flutter_pin_code/src/exceptions/runtime/wrong_pin_code_format_ex
 import 'package:flutter_pin_code/src/features/request_again.dart';
 import 'package:flutter_pin_code/src/features/timeout.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String kDefaultPinCodeKey = 'flutter_pin_code.default_key';
 const String kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
+const String kBiometricsTypeKeySuffix = '.biometrics';
 
 const int kPinCodeMaxLength = 64;
 
@@ -58,6 +62,7 @@ class PinCodeController {
 
   late final SharedPreferences _prefs;
   late final FlutterSecureStorage _secureStorage;
+  late final LocalAuthentication _localAuthentication;
 
   ///  Unique key for storing current pin code.
   late final String key;
@@ -81,11 +86,23 @@ class PinCodeController {
   /// Completer for checking if initialization method is called before any other operations.
   final _initCompleter = Completer();
 
-  /// Returns current pin code.
+  /// Current pin code.
   String? _currentPin;
 
+  /// Current biometrics.
+  BiometricsType? _currentBiometrics;
+
   /// Method you must call before any other method in this class.
-  Future<void> initialize() async {
+  Future<void> initialize({
+    /// Decides if there will be an initial biometric test if set.
+    bool doInitialBiometricTestIfSet = true,
+
+    /// Message for requesting fingerprint touch.
+    String? fingerprintReason,
+
+    /// Message for requesting face id use.
+    String? faceIdReason,
+  }) async {
     if (_initCompleter.isCompleted) {
       throw const InitializationAlreadyCompletedException(
           'Initialization already completed');
@@ -93,7 +110,31 @@ class PinCodeController {
     try {
       _prefs = await SharedPreferences.getInstance();
       _secureStorage = const FlutterSecureStorage();
+      _localAuthentication = LocalAuthentication();
+
+      // TODO(Sosnovyy): start timeout here if needed and return
+
       _currentPin = await _fetchPin();
+      final isPinCodeSet = _prefs.getBool(kIsPinCodeSetKey) ?? false;
+      if (!isPinCodeSet && _currentPin != null) await clear();
+
+      // TODO(Sosnovyy): biometric test if set and requested initially
+      _currentBiometrics = await getBiometricsType();
+      if (_currentBiometrics == null ||
+          _currentBiometrics == BiometricsType.none) {
+        throw const BiometricsNotConfiguredException(
+            'Biometrics not configured');
+      }
+      if (doInitialBiometricTestIfSet) {
+        if (faceIdReason == null || fingerprintReason == null) {
+          throw const BiometricsMessagesNotProvidedException(
+              'Biometrics not configured');
+        }
+        await testBiometrics(
+          faceIdReason: faceIdReason,
+          fingerprintReason: fingerprintReason,
+        );
+      }
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
@@ -181,4 +222,73 @@ class PinCodeController {
     await _secureStorage.write(key: key, value: pin);
     await _prefs.setBool(kIsPinCodeSetKey, true);
   }
+
+  /// Sets biometrics type.
+  Future<void> _setBiometricsType(BiometricsType type) async {
+    await _prefs.setString(key + kBiometricsTypeKeySuffix, type.name);
+  }
+
+  /// Returns the type of set biometrics.
+  Future<BiometricsType> getBiometricsType() async {
+    final name = _prefs.getString(key + kBiometricsTypeKeySuffix);
+    if (name == null) return BiometricsType.none;
+    return BiometricsType.values.byName(name);
+  }
+
+  /// Returns true if biometrics are available on the device and can be set.
+  ///
+  /// Call this method before calling enableBiometricsIfAvailable() to check if
+  /// you should ask user to use biometrics.
+  Future<bool> canAuthenticateWithBiometrics() async {
+    return await _localAuthentication.isDeviceSupported() &&
+        await _localAuthentication.canCheckBiometrics;
+  }
+
+  /// Enables biometrics if available on the device and returns the type of
+  /// set biometrics.
+  Future<BiometricsType> enableBiometricsIfAvailable() async {
+    final availableNativeTypes =
+        await _localAuthentication.getAvailableBiometrics();
+    if (availableNativeTypes.contains(BiometricType.face)) {
+      await _setBiometricsType(BiometricsType.face);
+      return BiometricsType.face;
+    } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
+        availableNativeTypes.contains(BiometricType.strong) ||
+        availableNativeTypes.contains(BiometricType.weak)) {
+      // TODO(Sosnovyy): check if the condition if fully valid
+      await _setBiometricsType(BiometricsType.fingerprint);
+      return BiometricsType.fingerprint;
+    }
+    return BiometricsType.none;
+  }
+
+  Future<bool> testBiometrics({
+    /// Message for requesting fingerprint touch.
+    required String fingerprintReason,
+
+    /// Message for requesting face id use.
+    required String faceIdReason,
+  }) async {
+    final availableBiometrics =
+        await _localAuthentication.getAvailableBiometrics();
+    final String reason;
+    if (availableBiometrics.contains(BiometricType.fingerprint)) {
+      reason = fingerprintReason;
+    } else if (availableBiometrics.contains(BiometricType.face)) {
+      reason = faceIdReason;
+    } else {
+      reason = '';
+    }
+    return await _localAuthentication.authenticate(
+      localizedReason: reason,
+      options: const AuthenticationOptions(
+        useErrorDialogs: true,
+        stickyAuth: true,
+        biometricOnly: true,
+      ),
+    );
+  }
 }
+
+/// Types of biometrics.
+enum BiometricsType { none, face, fingerprint }
