@@ -15,11 +15,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String kDefaultPinCodeKey = 'flutter_pin_code.default_key';
-const String kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
-const String kBiometricsTypeKeySuffix = '.biometrics';
-
-const int kPinCodeMaxLength = 64;
+const String _kDefaultPinCodeKey = 'flutter_pin_code.default_key';
+const String _kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
+const String _kBiometricsTypeKeySuffix = '.biometrics';
 
 class PinCodeController {
   PinCodeController({
@@ -27,7 +25,7 @@ class PinCodeController {
     this.millisecondsBetweenTests = 0,
     this.requestAgainConfig,
     this.timeoutConfig,
-  }) : key = key ?? kDefaultPinCodeKey {
+  }) : key = key ?? _kDefaultPinCodeKey {
     if (requestAgainConfig != null) {
       if (requestAgainConfig!.secondsBeforeRequestingAgain < 0) {
         throw const RequestAgainConfigException(
@@ -97,6 +95,8 @@ class PinCodeController {
     return _currentBiometrics;
   }
 
+  final int pinCodeMaxLength = 64;
+
   /// Method you must call before any other method in this class.
   Future<void> initialize({
     /// Decides if there will be an initial biometric test if set.
@@ -119,11 +119,10 @@ class PinCodeController {
 
       // TODO(Sosnovyy): start timeout here if needed and return
 
-      _currentPin = await _fetchPin();
-      final isPinCodeSet = _prefs.getBool(kIsPinCodeSetKey) ?? false;
+      _currentPin = await _fetchPinCode();
+      final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
       if (!isPinCodeSet && _currentPin != null) await clear();
 
-      // TODO(Sosnovyy): biometric test if set and requested initially
       _currentBiometrics = await fetchBiometricsType();
       if (_currentBiometrics == BiometricsType.none) {
         throw const BiometricsNotConfiguredException(
@@ -156,7 +155,7 @@ class PinCodeController {
   }
 
   /// Checks if pin code can be tested (not disabled by timeout)
-  Future<bool> canTest() async {
+  Future<bool> canTestPinCode() async {
     _verifyInitialized();
     // TODO(Sosnovyy): check if there are no timeout right now
     if (_currentPin == null) return false;
@@ -169,7 +168,7 @@ class PinCodeController {
     return _currentPin != null;
   }
 
-  Future<String?> _fetchPin() async {
+  Future<String?> _fetchPinCode() async {
     final pin = await _secureStorage.read(key: key);
     _currentPin = pin;
     return pin;
@@ -178,7 +177,7 @@ class PinCodeController {
   /// Returns the number of tries left before falling into another timeout.
   ///
   /// Null if timeout feature is disabled and number of tries is unlimited.
-  int? get numberOfTries {
+  int? get numberOfPinCodeTries {
     _verifyInitialized();
     throw UnimplementedError();
   }
@@ -186,7 +185,7 @@ class PinCodeController {
   /// Returns the current pin code length.
   ///
   /// Returns null if pin code is not set.
-  int? get pinLength {
+  int? get pinCodeLength {
     _verifyInitialized();
     return _currentPin?.length;
   }
@@ -197,14 +196,14 @@ class PinCodeController {
     if (_currentPin == null) return;
     _currentPin = null;
     await _secureStorage.delete(key: key);
-    await _prefs.setBool(kIsPinCodeSetKey, false);
+    await _prefs.setBool(_kIsPinCodeSetKey, false);
   }
 
   /// Checks if provided pin matches the current set one.
   ///
   /// If pin is valid, returns true and resets timeouts to initial state
   /// according to provided configuration.
-  Future<bool> test(String pin) async {
+  Future<bool> testPinCode(String pin) async {
     _verifyInitialized();
     if (_currentPin == null) {
       throw const PinCodeNotSetException('Pin code is not set but was tested');
@@ -218,25 +217,25 @@ class PinCodeController {
     _verifyInitialized();
     if (pin.isEmpty) {
       throw const WrongPinCodeFormatException('Pin code cannot be empty');
-    } else if (pin.length > kPinCodeMaxLength) {
-      throw const WrongPinCodeFormatException(
-          'Pin code is too long, max length is $kPinCodeMaxLength');
+    } else if (pin.length > pinCodeMaxLength) {
+      throw WrongPinCodeFormatException(
+          'Pin code is too long, max length is $pinCodeMaxLength');
     }
     _currentPin = pin;
     await _secureStorage.write(key: key, value: pin);
-    await _prefs.setBool(kIsPinCodeSetKey, true);
+    await _prefs.setBool(_kIsPinCodeSetKey, true);
   }
 
   /// Sets biometrics type.
   Future<void> _setBiometricsType(BiometricsType type) async {
     _verifyInitialized();
-    await _prefs.setString(key + kBiometricsTypeKeySuffix, type.name);
+    await _prefs.setString(key + _kBiometricsTypeKeySuffix, type.name);
   }
 
   /// Returns the type of set biometrics.
   Future<BiometricsType> fetchBiometricsType() async {
     _verifyInitialized();
-    final name = _prefs.getString(key + kBiometricsTypeKeySuffix);
+    final name = _prefs.getString(key + _kBiometricsTypeKeySuffix);
     if (name == null) return BiometricsType.none;
     return BiometricsType.values.byName(name);
   }
