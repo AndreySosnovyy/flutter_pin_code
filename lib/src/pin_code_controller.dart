@@ -90,7 +90,12 @@ class PinCodeController {
   String? _currentPin;
 
   /// Current biometrics.
-  BiometricsType? _currentBiometrics;
+  late BiometricsType _currentBiometrics;
+
+  BiometricsType get currentBiometrics {
+    _verifyInitialized();
+    return _currentBiometrics;
+  }
 
   /// Method you must call before any other method in this class.
   Future<void> initialize({
@@ -119,9 +124,8 @@ class PinCodeController {
       if (!isPinCodeSet && _currentPin != null) await clear();
 
       // TODO(Sosnovyy): biometric test if set and requested initially
-      _currentBiometrics = await getBiometricsType();
-      if (_currentBiometrics == null ||
-          _currentBiometrics == BiometricsType.none) {
+      _currentBiometrics = await fetchBiometricsType();
+      if (_currentBiometrics == BiometricsType.none) {
         throw const BiometricsNotConfiguredException(
             'Biometrics not configured');
       }
@@ -147,7 +151,7 @@ class PinCodeController {
   void _verifyInitialized() {
     if (!_initCompleter.isCompleted) {
       throw const ControllerNotInitializedException(
-          'Call async initialize() method before any other method');
+          'Call async initialize() method before any other method or getter');
     }
   }
 
@@ -187,7 +191,7 @@ class PinCodeController {
     return _currentPin?.length;
   }
 
-  /// Removes pin from storage.
+  /// Removes pin code and biometrics from storage.
   Future<void> clear() async {
     _verifyInitialized();
     if (_currentPin == null) return;
@@ -210,7 +214,7 @@ class PinCodeController {
   }
 
   /// Sets pin in storage.
-  Future<void> set(String pin) async {
+  Future<void> setPinCode(String pin) async {
     _verifyInitialized();
     if (pin.isEmpty) {
       throw const WrongPinCodeFormatException('Pin code cannot be empty');
@@ -225,11 +229,13 @@ class PinCodeController {
 
   /// Sets biometrics type.
   Future<void> _setBiometricsType(BiometricsType type) async {
+    _verifyInitialized();
     await _prefs.setString(key + kBiometricsTypeKeySuffix, type.name);
   }
 
   /// Returns the type of set biometrics.
-  Future<BiometricsType> getBiometricsType() async {
+  Future<BiometricsType> fetchBiometricsType() async {
+    _verifyInitialized();
     final name = _prefs.getString(key + kBiometricsTypeKeySuffix);
     if (name == null) return BiometricsType.none;
     return BiometricsType.values.byName(name);
@@ -240,6 +246,7 @@ class PinCodeController {
   /// Call this method before calling enableBiometricsIfAvailable() to check if
   /// you should ask user to use biometrics.
   Future<bool> canAuthenticateWithBiometrics() async {
+    _verifyInitialized();
     return await _localAuthentication.isDeviceSupported() &&
         await _localAuthentication.canCheckBiometrics;
   }
@@ -247,6 +254,7 @@ class PinCodeController {
   /// Enables biometrics if available on the device and returns the type of
   /// set biometrics.
   Future<BiometricsType> enableBiometricsIfAvailable() async {
+    _verifyInitialized();
     final availableNativeTypes =
         await _localAuthentication.getAvailableBiometrics();
     if (availableNativeTypes.contains(BiometricType.face)) {
@@ -269,6 +277,7 @@ class PinCodeController {
     /// Message for requesting face id use.
     required String faceIdReason,
   }) async {
+    _verifyInitialized();
     final availableBiometrics =
         await _localAuthentication.getAvailableBiometrics();
     final String reason;
