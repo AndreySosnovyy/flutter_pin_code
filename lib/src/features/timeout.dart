@@ -4,12 +4,40 @@ const int kPinCodeMaxTimeout = 21600;
 const int kPinCodeMaxRefreshRatio = 100;
 
 class PinCodeTimeoutConfig {
-  PinCodeTimeoutConfig({
+  PinCodeTimeoutConfig._({
     required this.onTimeoutEnd,
     required this.onMaxTimeoutsReached,
     required this.timeouts,
     required this.timeoutRefreshRatio,
   });
+
+  /// Creates PinCodeTimeoutConfig with refreshable timeouts
+  factory PinCodeTimeoutConfig.refreshable({
+    required Map<int, int> timeouts,
+    required VoidCallback onTimeoutEnd,
+    required int timeoutRefreshRatio,
+  }) {
+    return PinCodeTimeoutConfig._(
+      onTimeoutEnd: onTimeoutEnd,
+      onMaxTimeoutsReached: null,
+      timeouts: timeouts,
+      timeoutRefreshRatio: timeoutRefreshRatio,
+    );
+  }
+
+  /// Creates PinCodeTimeoutConfig with not refreshable timeouts
+  factory PinCodeTimeoutConfig.notRefreshable({
+    required Map<int, int> timeouts,
+    required VoidCallback onTimeoutEnd,
+    required VoidCallback onMaxTimeoutsReached,
+  }) {
+    return PinCodeTimeoutConfig._(
+      onTimeoutEnd: onTimeoutEnd,
+      onMaxTimeoutsReached: onMaxTimeoutsReached,
+      timeouts: timeouts,
+      timeoutRefreshRatio: null,
+    );
+  }
 
   /// Callback which shoots after current timeout is over.
   ///
@@ -20,6 +48,8 @@ class PinCodeTimeoutConfig {
   ///
   /// Can be used to notify the user that he used all attempts,
   /// sign him out and send back to authorization screen.
+  ///
+  /// This method will never be called if timeouts are refreshable.
   final VoidCallback? onMaxTimeoutsReached;
 
   /// Map containing number of tries before every timeout
@@ -50,4 +80,14 @@ class PinCodeTimeoutConfig {
   /// after wasting initial tries and both tries after 60 seconds the next
   /// available try will refresh after 600 seconds.
   final int? timeoutRefreshRatio;
+
+  @override
+  String toString() {
+    return 'PinCodeTimeoutConfig('
+        'onTimeoutEnd: $onTimeoutEnd, '
+        'onMaxTimeoutsReached: $onMaxTimeoutsReached, '
+        'timeouts: $timeouts, '
+        'timeoutRefreshRatio: $timeoutRefreshRatio'
+        ')';
+  }
 }

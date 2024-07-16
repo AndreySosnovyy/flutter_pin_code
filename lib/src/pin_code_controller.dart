@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/biometrics_messages_not_provided_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/biometrics_not_configured_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/controller_not_initialized_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/initialization_already_completed_exception.dart';
+import 'package:flutter_pin_code/src/exceptions/configuration/request_again_callback_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/request_again_config_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/configuration/timeout_config_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/runtime/pin_code_not_set.dart';
@@ -18,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const String _kDefaultPinCodeKey = 'flutter_pin_code.default_key';
 const String _kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
+const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
 class PinCodeController {
   PinCodeController({
@@ -95,7 +98,34 @@ class PinCodeController {
     return _currentBiometrics;
   }
 
+  /// Constant pin code max length.
   final int pinCodeMaxLength = 64;
+
+  /// Handles lifecycle state changes for Request again feature.
+  Future<void> onAppLifecycleStateChanged(AppLifecycleState state) async {
+    _verifyInitialized();
+    if (state == AppLifecycleState.hidden) {
+      await _prefs.setString(
+        _kBackgroundTimestampKey,
+        DateTime.now().millisecondsSinceEpoch.toString(),
+      );
+    } else if (state == AppLifecycleState.resumed) {
+      if (requestAgainConfig == null) return;
+      if (requestAgainConfig!.onRequestAgain == null) {
+        throw const RequestAgainCallbackNotSet(
+            'Request again callback not set');
+      }
+      // TODO(Sosnovyy): check if there is no timeout
+      final rawTimestamp = _prefs.getString(_kBackgroundTimestampKey);
+      if (rawTimestamp == null) return;
+      final timestamp =
+          DateTime.fromMillisecondsSinceEpoch(int.parse(rawTimestamp));
+      if (DateTime.now().difference(timestamp).inSeconds >=
+          requestAgainConfig!.secondsBeforeRequestingAgain) {
+        requestAgainConfig!.onRequestAgain!();
+      }
+    }
+  }
 
   /// Method you must call before any other method in this class.
   Future<void> initialize({
@@ -121,7 +151,10 @@ class PinCodeController {
 
       _currentPin = await _fetchPinCode();
       final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
-      if (!isPinCodeSet && _currentPin != null) await clear();
+      if (!isPinCodeSet && _currentPin != null) {
+        _initCompleter.complete();
+        return await clear();
+      }
 
       _currentBiometrics = await fetchBiometricsType();
       if (_currentBiometrics == BiometricsType.none) {
@@ -142,7 +175,7 @@ class PinCodeController {
       _initCompleter.completeError(e);
       rethrow;
     }
-    _initCompleter.complete(true);
+    _initCompleter.complete();
   }
 
   /// Verification of initialization.
@@ -159,10 +192,14 @@ class PinCodeController {
     _verifyInitialized();
     // TODO(Sosnovyy): check if there are no timeout right now
     if (_currentPin == null) return false;
+    // TODO(Sosnovyy): reset timeouts
     return true;
   }
 
   /// Checks if pin code is set.
+  ///
+  /// Can be used for initial navigation while deciding if send user to pin code
+  /// screen or strait to some other home screen.
   bool get isPinCodeSet {
     _verifyInitialized();
     return _currentPin != null;
