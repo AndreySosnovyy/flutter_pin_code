@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter_pin_code/src/exceptions/configuration/timeout_config_exception.dart';
+import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_data_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,16 +10,17 @@ const int _kMaxIterateInterval = 120;
 
 const String _kRefreshPoolKey = 'flutter_pin_code.refresh_pool';
 
+// TODO(Sosnovyy): test write to prefs and fetch from prefs methods before main tests
 class TimeoutsRefreshEventLoop {
   TimeoutsRefreshEventLoop({
     required SharedPreferences prefs,
     this.iterateInterval = _kDefaultIterateInterval,
   }) : _prefs = prefs {
     if (iterateInterval <= 0) {
-      throw const TimeoutConfigException(
+      throw const TimeoutConfigError(
           'iterateInterval must be greater than 0');
     } else if (iterateInterval > _kMaxIterateInterval) {
-      throw const TimeoutConfigException(
+      throw const TimeoutConfigError(
           'iterateInterval is too big, max is $_kMaxIterateInterval seconds');
     }
   }

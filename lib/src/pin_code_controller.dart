@@ -2,15 +2,15 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/biometrics_messages_not_provided_exception.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/biometrics_not_configured_exception.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/controller_not_initialized_exception.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/initialization_already_completed_exception.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/request_again_callback_not_set.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/request_again_config_exception.dart';
-import 'package:flutter_pin_code/src/exceptions/configuration/timeout_config_exception.dart';
-import 'package:flutter_pin_code/src/exceptions/runtime/pin_code_not_set.dart';
-import 'package:flutter_pin_code/src/exceptions/runtime/wrong_pin_code_format_exception.dart';
+import 'package:flutter_pin_code/src/errors/biometrics_messages_not_provided_error.dart';
+import 'package:flutter_pin_code/src/errors/biometrics_not_configured_error.dart';
+import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
+import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
+import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
+import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
+import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
+import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
+import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeouts_refresh_event_loop.dart';
@@ -23,6 +23,8 @@ const String _kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
+// TODO(Sosnovyy): add current attempts counter
+// TODO(Sosnovyy): add timeout handler
 class PinCodeController {
   PinCodeController({
     String? key,
@@ -32,30 +34,28 @@ class PinCodeController {
   }) : key = key ?? _kDefaultPinCodeKey {
     if (requestAgainConfig != null) {
       if (requestAgainConfig!.secondsBeforeRequestingAgain < 0) {
-        throw const RequestAgainConfigException(
+        throw const RequestAgainConfigError(
             'Variable "secondsBeforeRequestingAgain" must be positive or zero');
       }
     }
     if (timeoutConfig != null) {
       if (timeoutConfig!.timeouts.isEmpty) {
-        throw const TimeoutConfigException(
-            'Variable "timeouts" cannot be empty');
+        throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
       }
       if (timeoutConfig!.timeouts.keys.reduce(math.min) < 0) {
-        throw const TimeoutConfigException('Timeout cannot be negative');
+        throw const TimeoutConfigError('Timeout cannot be negative');
       }
       if (timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
-        throw const TimeoutConfigException(
-            'Number of tries cannot be negative');
+        throw const TimeoutConfigError('Number of tries cannot be negative');
       }
       if (timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
-        throw const TimeoutConfigException(
+        throw const TimeoutConfigError(
             'Max timeout is $kPinCodeMaxTimeout seconds');
       }
       if (timeoutConfig!.timeoutRefreshRatio != null) {
         if (timeoutConfig!.timeoutRefreshRatio! < 0 ||
             timeoutConfig!.timeoutRefreshRatio! > 100) {
-          throw const TimeoutConfigException(
+          throw const TimeoutConfigError(
               'Variable "timeoutRefreshRatio" must be between 0 and 100 inclusive');
         }
       }
@@ -114,7 +114,7 @@ class PinCodeController {
     } else if (state == AppLifecycleState.resumed) {
       if (requestAgainConfig == null) return;
       if (requestAgainConfig!.onRequestAgain == null) {
-        throw const RequestAgainCallbackNotSet(
+        throw const RequestAgainCallbackNotSetError(
             'Request again callback not set');
       }
       // TODO(Sosnovyy): check if there is no timeout
@@ -141,7 +141,7 @@ class PinCodeController {
     String? faceIdReason,
   }) async {
     if (_initCompleter.isCompleted) {
-      throw const InitializationAlreadyCompletedException(
+      throw const InitializationAlreadyCompletedError(
           'Initialization already completed');
     }
     try {
@@ -157,7 +157,7 @@ class PinCodeController {
         _timeoutRefreshLoopStreamSubscription = _timeoutsRefreshEventLoop
             .refreshStream
             .listen((refreshedTimeoutDuration) {
-              // TODO(Sosnovyy): add one available attempt to test pin code
+          // TODO(Sosnovyy): add one available attempt to test pin code
         });
       }
 
@@ -170,12 +170,11 @@ class PinCodeController {
 
       _currentBiometrics = await fetchBiometricsType();
       if (_currentBiometrics == BiometricsType.none) {
-        throw const BiometricsNotConfiguredException(
-            'Biometrics not configured');
+        throw const BiometricsNotConfiguredError('Biometrics not configured');
       }
       if (doInitialBiometricTestIfSet) {
         if (faceIdReason == null || fingerprintReason == null) {
-          throw const BiometricsMessagesNotProvidedException(
+          throw const BiometricsMessagesNotProvidedError(
               'Biometrics not configured');
         }
         await testBiometrics(
@@ -194,7 +193,7 @@ class PinCodeController {
   /// Must be called before any other method in this class.
   void _verifyInitialized() {
     if (!_initCompleter.isCompleted) {
-      throw const ControllerNotInitializedException(
+      throw const ControllerNotInitializedError(
           'Call async initialize() method before any other method or getter');
     }
   }
@@ -258,8 +257,11 @@ class PinCodeController {
       throw const PinCodeNotSetException('Pin code is not set but was tested');
     }
     if (pin == _currentPin) return true;
-    if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
-      // TODO(Sosnovyy): add timeout to refresh loop
+    if (timeoutConfig != null) {
+      // TODO(Sosnovyy): decrease attempts counter and perform timeouts logic
+      if (timeoutConfig!.isRefreshable) {
+        // TODO(Sosnovyy): add timeout to refresh loop
+      }
     }
     return false;
   }
