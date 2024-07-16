@@ -81,6 +81,9 @@ class PinCodeTimeoutConfig {
   /// available try will refresh after 600 seconds.
   final int? timeoutRefreshRatio;
 
+  /// Returns true if timeouts are configured to be refreshable.
+  bool get isRefreshable => timeoutRefreshRatio != null;
+
   @override
   String toString() {
     return 'PinCodeTimeoutConfig('

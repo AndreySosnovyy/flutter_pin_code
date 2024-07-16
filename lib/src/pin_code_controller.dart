@@ -13,6 +13,7 @@ import 'package:flutter_pin_code/src/exceptions/runtime/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/runtime/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
+import 'package:flutter_pin_code/src/features/timeout/timeouts_refresh_event_loop.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,6 +66,9 @@ class PinCodeController {
   late final FlutterSecureStorage _secureStorage;
   late final LocalAuthentication _localAuthentication;
 
+  late final TimeoutsRefreshEventLoop _timeoutsRefreshEventLoop;
+  late final StreamSubscription _timeoutRefreshLoopStreamSubscription;
+
   ///  Unique key for storing current pin code.
   late final String key;
 
@@ -81,8 +85,6 @@ class PinCodeController {
 
   /// Number of milliseconds between tests.
   final int millisecondsBetweenTests;
-
-  // TODO(Sosnovyy): add timeout stream
 
   /// Completer for checking if initialization method is called before any other operations.
   final _initCompleter = Completer();
@@ -148,6 +150,16 @@ class PinCodeController {
       _localAuthentication = LocalAuthentication();
 
       // TODO(Sosnovyy): start timeout here if needed and return
+
+      if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
+        _timeoutsRefreshEventLoop = TimeoutsRefreshEventLoop(prefs: _prefs);
+        await _timeoutsRefreshEventLoop.initialize();
+        _timeoutRefreshLoopStreamSubscription = _timeoutsRefreshEventLoop
+            .refreshStream
+            .listen((refreshedTimeoutDuration) {
+              // TODO(Sosnovyy): add one available attempt to test pin code
+        });
+      }
 
       _currentPin = await _fetchPinCode();
       final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
@@ -246,6 +258,9 @@ class PinCodeController {
       throw const PinCodeNotSetException('Pin code is not set but was tested');
     }
     if (pin == _currentPin) return true;
+    if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
+      // TODO(Sosnovyy): add timeout to refresh loop
+    }
     return false;
   }
 
@@ -332,6 +347,15 @@ class PinCodeController {
         biometricOnly: true,
       ),
     );
+  }
+
+  /// Disposes pin code controller.
+  Future<void> dispose() async {
+    _verifyInitialized();
+    if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
+      _timeoutRefreshLoopStreamSubscription.cancel();
+      await _timeoutsRefreshEventLoop.dispose();
+    }
   }
 }
 
