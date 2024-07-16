@@ -11,8 +11,8 @@ import 'package:flutter_pin_code/src/exceptions/configuration/request_again_conf
 import 'package:flutter_pin_code/src/exceptions/configuration/timeout_config_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/runtime/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/runtime/wrong_pin_code_format_exception.dart';
-import 'package:flutter_pin_code/src/features/request_again.dart';
-import 'package:flutter_pin_code/src/features/timeout.dart';
+import 'package:flutter_pin_code/src/features/request_again_config.dart';
+import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
