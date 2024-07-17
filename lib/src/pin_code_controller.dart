@@ -1,18 +1,14 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/errors/biometrics_messages_not_provided_error.dart';
-import 'package:flutter_pin_code/src/errors/biometrics_not_configured_error.dart';
 import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
 import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
-import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again/request_again_config.dart';
-import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,6 +78,7 @@ class PinCodeController {
   /// Disabled if null.
   // final PinCodeTimeoutConfig? timeoutConfig;
 
+  // TODO(Sosnovyy): implement logic
   /// Number of milliseconds between tests.
   final int millisecondsBetweenTests;
 
@@ -151,13 +148,13 @@ class PinCodeController {
       // TODO(Sosnovyy): start timeout here if needed and return
 
       // if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
-        // _timeoutsRefreshEventLoop = TimeoutsRefreshEventLoop(prefs: _prefs);
-        // await _timeoutsRefreshEventLoop.initialize();
-        // _timeoutRefreshLoopStreamSubscription = _timeoutsRefreshEventLoop
-        //     .refreshStream
-        //     .listen((refreshedTimeoutDuration) {
-        //   TODO(Sosnovyy): add one available attempt to test pin code
-        // });
+      // _timeoutsRefreshEventLoop = TimeoutsRefreshEventLoop(prefs: _prefs);
+      // await _timeoutsRefreshEventLoop.initialize();
+      // _timeoutRefreshLoopStreamSubscription = _timeoutsRefreshEventLoop
+      //     .refreshStream
+      //     .listen((refreshedTimeoutDuration) {
+      //   TODO(Sosnovyy): add one available attempt to test pin code
+      // });
       // }
 
       _currentPin = await _fetchPinCode();
@@ -168,9 +165,10 @@ class PinCodeController {
       }
 
       _currentBiometrics = await fetchBiometricsType();
-      if (_currentBiometrics == BiometricsType.none) {
-        throw const BiometricsNotConfiguredError('Biometrics not configured');
-      }
+      // TODO(Sosnovyy): why did I write this ???
+      // if (_currentBiometrics == BiometricsType.none) {
+      //   throw const BiometricsNotConfiguredError('Biometrics not configured');
+      // }
       if (doInitialBiometricTestIfSet) {
         if (faceIdReason == null || fingerprintReason == null) {
           throw const BiometricsMessagesNotProvidedError(
@@ -202,7 +200,6 @@ class PinCodeController {
     _verifyInitialized();
     // TODO(Sosnovyy): check if there are no timeout right now
     if (_currentPin == null) return false;
-    // TODO(Sosnovyy): reset timeouts
     return true;
   }
 
@@ -226,10 +223,11 @@ class PinCodeController {
   /// Null if timeout feature is disabled and number of tries is unlimited.
   int? get numberOfPinCodeTries {
     _verifyInitialized();
+    // TODO(Sosnovyy): implement logic
     throw UnimplementedError();
   }
 
-  /// Returns the current pin code length.
+  /// Returns the current pin code's length.
   ///
   /// Returns null if pin code is not set.
   int? get pinCodeLength {
@@ -244,6 +242,8 @@ class PinCodeController {
     _currentPin = null;
     await _secureStorage.delete(key: key);
     await _prefs.setBool(_kIsPinCodeSetKey, false);
+    await _prefs.setString(
+        key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
   }
 
   /// Checks if provided pin matches the current set one.
@@ -253,14 +253,14 @@ class PinCodeController {
   Future<bool> testPinCode(String pin) async {
     _verifyInitialized();
     if (_currentPin == null) {
-      throw const PinCodeNotSetException('Pin code is not set but was tested');
+      throw const PinCodeNotSetException('Pin code is not set, but was tested');
     }
     if (pin == _currentPin) return true;
     // if (timeoutConfig != null) {
-      // TODO(Sosnovyy): decrease attempts counter and perform timeouts logic
-      // if (timeoutConfig!.isRefreshable) {
-        // TODO(Sosnovyy): add timeout to refresh loop
-      // }
+    // TODO(Sosnovyy): decrease attempts counter and perform timeouts logic
+    // if (timeoutConfig!.isRefreshable) {
+    // TODO(Sosnovyy): add timeout to refresh loop
+    // }
     // }
     return false;
   }
@@ -354,8 +354,8 @@ class PinCodeController {
   Future<void> dispose() async {
     _verifyInitialized();
     // if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
-      // _timeoutRefreshLoopStreamSubscription.cancel();
-      // await _timeoutsRefreshEventLoop.dispose();
+    // _timeoutRefreshLoopStreamSubscription.cancel();
+    // await _timeoutsRefreshEventLoop.dispose();
     // }
   }
 }
