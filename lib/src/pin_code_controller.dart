@@ -164,20 +164,18 @@ class PinCodeController {
         return await clear();
       }
 
-      _currentBiometrics = await fetchBiometricsType();
-      // TODO(Sosnovyy): why did I write this ???
-      // if (_currentBiometrics == BiometricsType.none) {
-      //   throw const BiometricsNotConfiguredError('Biometrics not configured');
-      // }
+      _currentBiometrics = await _fetchBiometricsType();
       if (doInitialBiometricTestIfSet) {
         if (faceIdReason == null || fingerprintReason == null) {
           throw const BiometricsMessagesNotProvidedError(
               'Biometrics not configured');
         }
-        await testBiometrics(
-          faceIdReason: faceIdReason,
-          fingerprintReason: fingerprintReason,
-        );
+        if (_currentBiometrics != BiometricsType.none) {
+          await testBiometrics(
+            faceIdReason: faceIdReason,
+            fingerprintReason: fingerprintReason,
+          );
+        }
       }
     } on Object catch (e) {
       _initCompleter.completeError(e);
@@ -286,8 +284,7 @@ class PinCodeController {
   }
 
   /// Returns the type of set biometrics.
-  Future<BiometricsType> fetchBiometricsType() async {
-    _verifyInitialized();
+  Future<BiometricsType> _fetchBiometricsType() async {
     final name = _prefs.getString(key + _kBiometricsTypeKeySuffix);
     if (name == null) return BiometricsType.none;
     return BiometricsType.values.byName(name);
