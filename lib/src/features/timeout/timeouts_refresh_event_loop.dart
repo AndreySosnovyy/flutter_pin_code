@@ -10,6 +10,7 @@ const int _kMaxIterateInterval = 120;
 
 const String _kRefreshPoolKey = 'flutter_pin_code.refresh_pool';
 
+// TODO(Sosnovyy): fully rework current refresh system
 // TODO(Sosnovyy): test write to prefs and fetch from prefs methods before main tests
 class TimeoutsRefreshEventLoop {
   TimeoutsRefreshEventLoop({

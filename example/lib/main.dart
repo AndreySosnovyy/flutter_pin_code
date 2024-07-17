@@ -31,7 +31,7 @@ class DI {
   // Place the controller in your DI or anywhere you think is most appropriate.
   static final pinCodeController = PinCodeController(
     requestAgainConfig: _requestAgainConfig,
-    timeoutConfig: _refreshableTimeoutConfig,
+    // timeoutConfig: _refreshableTimeoutConfig,
   );
 
   // Use any state management you prefer in your project. This is just a simple example.

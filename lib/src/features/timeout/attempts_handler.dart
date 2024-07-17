@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+// TODO(Sosnovyy): add writing and reading from prefs
 class AttemptsHandler {
   AttemptsHandler({
     required SharedPreferences prefs,
@@ -27,7 +28,7 @@ class AttemptsHandler {
 
   /// Method to waste an attempt from the current attempts pool
   void wasteAttempt() {
-    // TODO(Sosnovyy): waste one attempt with specified duration
+    // TODO(Sosnovyy): waste one attempt
   }
 
   /// Method to check if any attempt is available right now
