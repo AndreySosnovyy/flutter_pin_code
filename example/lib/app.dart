@@ -1,5 +1,5 @@
 import 'package:example/main.dart';
-import 'package:example/pin_code/pin_code_view.dart';
+import 'package:example/pin_code_view.dart';
 import 'package:flutter/material.dart';
 
 class PinCodeApp extends StatefulWidget {

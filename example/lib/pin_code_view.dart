@@ -1,6 +1,6 @@
 import 'package:example/extensions.dart';
 import 'package:example/main.dart';
-import 'package:example/settings/settings_view.dart';
+import 'package:example/settings_view.dart';
 import 'package:flutter/material.dart';
 
 class PinCodeView extends StatefulWidget {
@@ -29,7 +29,10 @@ class _PinCodeViewState extends State<PinCodeView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(controller: pinCodeTextEditingController),
+            TextField(
+              controller: pinCodeTextEditingController,
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () async {
@@ -52,7 +55,14 @@ class _PinCodeViewState extends State<PinCodeView> {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                if (await pinCodeController.canAuthenticateWithBiometrics()) {
+                  await pinCodeController.testBiometrics(
+                    fingerprintReason: 'fingerprintReason',
+                    faceIdReason: 'faceIdReason',
+                  );
+                }
+              },
               child: Text(
                 'Biometrics (${pinCodeController.currentBiometrics.title})',
               ),
