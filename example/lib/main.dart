@@ -28,6 +28,7 @@ class DI {
       print('Sign the user out and navigate him to auth screen!');
     },
   );
+
   // Place the controller in your DI or anywhere you think is most appropriate.
   static final pinCodeController = PinCodeController(
     requestAgainConfig: _requestAgainConfig,
@@ -47,6 +48,7 @@ void main() async {
     fingerprintReason: 'Touch the fingerprint sensor',
     faceIdReason: 'Look at the camera',
   );
+  await DI.pinCodeController.setPinCode('1111');
 
   // Other initialization
   await DI.pinCodeViewController.initialize();
