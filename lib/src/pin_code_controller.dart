@@ -20,6 +20,7 @@ const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
 // TODO(Sosnovyy): add current attempts counter
 // TODO(Sosnovyy): add timeout handler
+// TODO(Sosnovyy): save request again config in prefs
 class PinCodeController {
   PinCodeController({
     String? key,
@@ -70,13 +71,13 @@ class PinCodeController {
   /// Configuration for "Requesting pin code again" feature.
   ///
   /// Disabled if null.
-  final PinCodeRequestAgainConfig? requestAgainConfig;
+  PinCodeRequestAgainConfig? requestAgainConfig;
 
   /// Configuration for "Timeouts" feature.
   /// Number of tries is unlimited if disabled.
   ///
   /// Disabled if null.
-  // final PinCodeTimeoutConfig? timeoutConfig;
+  // PinCodeTimeoutConfig? timeoutConfig;
 
   // TODO(Sosnovyy): implement logic
   /// Number of milliseconds between tests.

@@ -1,5 +1,6 @@
 import 'package:example/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pin_code/flutter_pin_code.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -76,7 +77,19 @@ class _SettingsViewState extends State<SettingsView> {
                                 Navigator.of(context).pop();
                                 requestAgainType = type;
                                 setState(() {});
-                                // TODO(Sosnovyy): set config in run time (not implemented yet in package)
+                                showToast(
+                                    'Selected ${type.title} option for Request Again');
+                                if (type == RequestAgainType.disabled) {
+                                  pinCodeController.requestAgainConfig = null;
+                                } else {
+                                  final newConfig = PinCodeRequestAgainConfig(
+                                    secondsBeforeRequestingAgain: type.seconds!,
+                                    onRequestAgain: pinCodeController
+                                        .requestAgainConfig?.onRequestAgain,
+                                  );
+                                  pinCodeController.requestAgainConfig =
+                                      newConfig;
+                                }
                               },
                               child: Text(type.title),
                             ),
