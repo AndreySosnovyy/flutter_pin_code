@@ -9,7 +9,7 @@ class PinCodeRequestAgainConfig {
   /// Number of seconds needed to pass before requesting the pin code another time
   ///
   /// Null for disabling the feature of
-  final int secondsBeforeRequestingAgain;
+  int secondsBeforeRequestingAgain;
 
   /// Callback that will be called when you need to request the pin code again
   ///
@@ -22,7 +22,7 @@ class PinCodeRequestAgainConfig {
   /// this callback or when you call onAppLifecycleStateChanged method!
   /// This is possible if user moved the app to background while still on pin
   /// code screen and then went back to foreground with "Request again" config set.
-  final VoidCallback? onRequestAgain;
+  VoidCallback? onRequestAgain;
 
   @override
   String toString() {

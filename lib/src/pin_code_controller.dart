@@ -15,6 +15,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kDefaultPinCodeKey = 'flutter_pin_code.default_key';
 const String _kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
+const String _kPinCodeRequestAgainSeconds =
+    'flutter_pin_code.request_again_seconds';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
@@ -25,11 +27,11 @@ class PinCodeController {
   PinCodeController({
     String? key,
     this.millisecondsBetweenTests = 0,
-    this.requestAgainConfig,
+    PinCodeRequestAgainConfig? requestAgainConfig,
     // this.timeoutConfig,
   }) : key = key ?? _kDefaultPinCodeKey {
     if (requestAgainConfig != null) {
-      if (requestAgainConfig!.secondsBeforeRequestingAgain < 0) {
+      if (requestAgainConfig.secondsBeforeRequestingAgain < 0) {
         throw const RequestAgainConfigError(
             'Variable "secondsBeforeRequestingAgain" must be positive or zero');
       }
@@ -71,7 +73,7 @@ class PinCodeController {
   /// Configuration for "Requesting pin code again" feature.
   ///
   /// Disabled if null.
-  PinCodeRequestAgainConfig? requestAgainConfig;
+  PinCodeRequestAgainConfig? _requestAgainConfig;
 
   /// Configuration for "Timeouts" feature.
   /// Number of tries is unlimited if disabled.
@@ -99,6 +101,21 @@ class PinCodeController {
 
   /// Constant pin code max length.
   final int pinCodeMaxLength = 64;
+
+  PinCodeRequestAgainConfig? get requestAgainConfig {
+    return _requestAgainConfig;
+  }
+
+  /// Sets request again config and writes it in prefs.
+  set requestAgainConfig(PinCodeRequestAgainConfig? config) {
+    _requestAgainConfig = config;
+    if (config == null) {
+      _prefs.remove(_kPinCodeRequestAgainSeconds);
+    } else {
+      _prefs.setInt(
+          _kPinCodeRequestAgainSeconds, config.secondsBeforeRequestingAgain);
+    }
+  }
 
   /// Handles lifecycle state changes for Request again feature.
   Future<void> onAppLifecycleStateChanged(AppLifecycleState state) async {
@@ -157,6 +174,20 @@ class PinCodeController {
       //   TODO(Sosnovyy): add one available attempt to test pin code
       // });
       // }
+
+      if (requestAgainConfig != null) {
+        await _prefs.setInt(
+          _kPinCodeRequestAgainSeconds,
+          requestAgainConfig!.secondsBeforeRequestingAgain,
+        );
+      } else {
+        final secondsFromPrefs = _prefs.getInt(_kPinCodeRequestAgainSeconds);
+        if (secondsFromPrefs != null) {
+          requestAgainConfig = PinCodeRequestAgainConfig(
+            secondsBeforeRequestingAgain: secondsFromPrefs,
+          );
+        }
+      }
 
       _currentPin = await _fetchPinCode();
       final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
@@ -234,7 +265,7 @@ class PinCodeController {
     return _currentPin?.length;
   }
 
-  /// Removes pin code and biometrics from storage.
+  /// Removes pin code (+ its configs) and biometrics from storage.
   Future<void> clear() async {
     _verifyInitialized();
     if (_currentPin == null) return;
@@ -243,6 +274,7 @@ class PinCodeController {
     await _prefs.setBool(_kIsPinCodeSetKey, false);
     await _prefs.setString(
         key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
+    await _prefs.remove(_kPinCodeRequestAgainSeconds);
   }
 
   /// Checks if provided pin matches the current set one.
