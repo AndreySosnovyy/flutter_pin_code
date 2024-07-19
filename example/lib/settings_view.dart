@@ -1,5 +1,4 @@
 import 'package:example/main.dart';
-import 'package:example/pin_code_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pin_code/flutter_pin_code.dart';
 
@@ -87,16 +86,7 @@ class _SettingsViewState extends State<SettingsView> {
                                     secondsBeforeRequestingAgain: type.seconds!,
                                     onRequestAgain: pinCodeController
                                             .requestAgainConfig
-                                            ?.onRequestAgain ??
-                                        () {
-                                          Navigator.of(context)
-                                            ..popUntil((route) => route.isFirst)
-                                            ..pushReplacement(MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const PinCodeView(),
-                                            ));
-                                          showToast('Request Again called');
-                                        },
+                                            ?.onRequestAgain,
                                   );
                                   pinCodeController.requestAgainConfig =
                                       newConfig;

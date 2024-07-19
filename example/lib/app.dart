@@ -10,10 +10,25 @@ class PinCodeApp extends StatefulWidget {
 }
 
 class _PinCodeAppState extends State<PinCodeApp> with WidgetsBindingObserver {
+  void showToast(String message) => ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(message)));
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (DI.pinCodeController.requestAgainConfig != null) {
+      DI.pinCodeController.requestAgainConfig!.onRequestAgain = () {
+        final navigator = Navigator.of(context);
+        if (!navigator.canPop()) return;
+        navigator
+          ..popUntil((route) => route.isFirst)
+          ..pushReplacement(MaterialPageRoute(
+            builder: (context) => const PinCodeView(),
+          ));
+        showToast('Requesting again called');
+      };
+    }
   }
 
   @override
