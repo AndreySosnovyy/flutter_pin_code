@@ -12,8 +12,21 @@ class _SettingsViewState extends State<SettingsView> {
   final pinCodeTextEditingController = TextEditingController();
   final pinCodeController = DI.pinCodeController;
 
+  late RequestAgainType requestAgainType;
+
   void showToast(String message) => ScaffoldMessenger.of(context)
       .showSnackBar(SnackBar(content: Text(message)));
+
+  @override
+  void initState() {
+    super.initState();
+    if (pinCodeController.requestAgainConfig == null) {
+      requestAgainType = RequestAgainType.disabled;
+    } else {
+      requestAgainType = RequestAgainType.fromSeconds(
+          pinCodeController.requestAgainConfig!.secondsBeforeRequestingAgain);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +50,6 @@ class _SettingsViewState extends State<SettingsView> {
                 if (pinCodeTextEditingController.text.length != 4) {
                   showToast('PIN CODE must be 4 digits');
                 } else {
-                  print('111111111111111111111111111111111111111111111111');
                   await pinCodeController
                       .setPinCode(pinCodeTextEditingController.text);
                   showToast('PIN CODE set');
@@ -45,9 +57,88 @@ class _SettingsViewState extends State<SettingsView> {
               },
               child: const Text('Set PIN CODE'),
             ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                showAdaptiveDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text(
+                          'Select amount of time before requesting pin code again after app being in background'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final type in RequestAgainType.values)
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                requestAgainType = type;
+                                setState(() {});
+                                // TODO(Sosnovyy): set config in run time (not implemented yet in package)
+                              },
+                              child: Text(type.title),
+                            ),
+                        ],
+                      ),
+                      actions: [
+                        ElevatedButton(
+                          onPressed: Navigator.of(context).pop,
+                          child: const Text('Cancel'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child:
+                  Text('Select Request Again time (${requestAgainType.title})'),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+enum RequestAgainType {
+  disabled(null),
+  everyTime(0),
+  sec30(30),
+  min1(60),
+  min3(180),
+  min5(300),
+  min10(600);
+
+  final int? seconds;
+
+  const RequestAgainType(this.seconds);
+
+  static RequestAgainType fromSeconds(int seconds) {
+    return RequestAgainType.values
+        .firstWhere((element) => element.seconds == seconds);
+  }
+}
+
+extension RequestAgainTypeExtension on RequestAgainType {
+  String get title => switch (this) {
+        RequestAgainType.disabled => 'Disabled',
+        RequestAgainType.everyTime => 'Every time',
+        RequestAgainType.sec30 => '30 seconds',
+        RequestAgainType.min1 => '1 minute',
+        RequestAgainType.min3 => '3 minutes',
+        RequestAgainType.min5 => '5 minutes',
+        RequestAgainType.min10 => '10 minutes',
+      };
+
+  int? get toSeconds => switch (this) {
+        RequestAgainType.disabled => null,
+        RequestAgainType.everyTime => 0,
+        RequestAgainType.sec30 => 30,
+        RequestAgainType.min1 => 60,
+        RequestAgainType.min3 => 180,
+        RequestAgainType.min5 => 300,
+        RequestAgainType.min10 => 600,
+      };
 }
