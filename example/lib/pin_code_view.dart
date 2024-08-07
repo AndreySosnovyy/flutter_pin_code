@@ -1,3 +1,4 @@
+import 'package:example/app.dart';
 import 'package:example/extensions.dart';
 import 'package:example/main.dart';
 import 'package:example/settings_view.dart';
@@ -13,9 +14,6 @@ class PinCodeView extends StatefulWidget {
 class _PinCodeViewState extends State<PinCodeView> {
   final pinCodeTextEditingController = TextEditingController();
   final pinCodeController = DI.pinCodeController;
-
-  void showToast(String message) => ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(message)));
 
   @override
   Widget build(BuildContext context) {

@@ -274,6 +274,7 @@ class PinCodeController {
     await _prefs.setBool(_kIsPinCodeSetKey, false);
     await _prefs.setString(
         key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
+    // TODO(Sosnovyy): maybe remove or refactor as optional
     await _prefs.remove(_kPinCodeRequestAgainSeconds);
   }
 

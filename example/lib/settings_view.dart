@@ -1,3 +1,4 @@
+import 'package:example/app.dart';
 import 'package:example/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pin_code/flutter_pin_code.dart';
@@ -14,9 +15,6 @@ class _SettingsViewState extends State<SettingsView> {
   final pinCodeController = DI.pinCodeController;
 
   late RequestAgainType requestAgainType;
-
-  void showToast(String message) => ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(message)));
 
   @override
   void initState() {
@@ -66,7 +64,7 @@ class _SettingsViewState extends State<SettingsView> {
                   builder: (context) {
                     return AlertDialog(
                       title: const Text(
-                          'Select amount of time before requesting pin code again after app being in background'),
+                          'Select the duration before requesting pin code again after app being in background'),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,8 +83,7 @@ class _SettingsViewState extends State<SettingsView> {
                                   final newConfig = PinCodeRequestAgainConfig(
                                     secondsBeforeRequestingAgain: type.seconds!,
                                     onRequestAgain: pinCodeController
-                                            .requestAgainConfig
-                                            ?.onRequestAgain,
+                                        .requestAgainConfig?.onRequestAgain,
                                   );
                                   pinCodeController.requestAgainConfig =
                                       newConfig;

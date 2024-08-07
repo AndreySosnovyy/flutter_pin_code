@@ -2,6 +2,12 @@ import 'package:example/main.dart';
 import 'package:example/pin_code_view.dart';
 import 'package:flutter/material.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+void showToast(String message) => scaffoldMessengerKey.currentState!
+    .showSnackBar(SnackBar(content: Text(message)));
+
 class PinCodeApp extends StatefulWidget {
   const PinCodeApp({super.key});
 
@@ -10,16 +16,13 @@ class PinCodeApp extends StatefulWidget {
 }
 
 class _PinCodeAppState extends State<PinCodeApp> with WidgetsBindingObserver {
-  void showToast(String message) => ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(message)));
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (DI.pinCodeController.requestAgainConfig != null) {
       DI.pinCodeController.requestAgainConfig!.onRequestAgain = () {
-        final navigator = Navigator.of(context);
+        final navigator = navigatorKey.currentState!;
         if (!navigator.canPop()) return;
         navigator
           ..popUntil((route) => route.isFirst)
@@ -39,8 +42,10 @@ class _PinCodeAppState extends State<PinCodeApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: PinCodeView(),
+    return MaterialApp(
+      home: const PinCodeView(),
+      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
     );
   }
 
