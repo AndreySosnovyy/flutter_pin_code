@@ -53,6 +53,7 @@ class _SettingsViewState extends State<SettingsView> {
                   await pinCodeController
                       .setPinCode(pinCodeTextEditingController.text);
                   showToast('PIN CODE set');
+                  setState(() {});
                 }
               },
               child: const Text('Set PIN CODE'),

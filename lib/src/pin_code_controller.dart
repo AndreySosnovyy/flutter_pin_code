@@ -192,6 +192,7 @@ class PinCodeController {
       _currentPin = await _fetchPinCode();
       final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
       if (!isPinCodeSet && _currentPin != null) {
+        _currentBiometrics = BiometricsType.none;
         _initCompleter.complete();
         return await clear();
       }
