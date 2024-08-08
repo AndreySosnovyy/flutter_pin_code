@@ -1,4 +1,5 @@
 import 'package:example/app.dart';
+import 'package:example/extensions.dart';
 import 'package:example/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pin_code/flutter_pin_code.dart';
@@ -55,6 +56,17 @@ class _SettingsViewState extends State<SettingsView> {
                 }
               },
               child: const Text('Set PIN CODE'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                await pinCodeController.enableBiometricsIfAvailable();
+                setState(() {});
+              },
+              child: Text(pinCodeController.currentBiometrics ==
+                      BiometricsType.none
+                  ? 'Enable biometric'
+                  : 'Disable biometric (${pinCodeController.currentBiometrics.title})'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(

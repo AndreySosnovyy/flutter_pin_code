@@ -330,6 +330,7 @@ class PinCodeController {
   /// you should ask user to use biometrics.
   Future<bool> canAuthenticateWithBiometrics() async {
     _verifyInitialized();
+    if (currentBiometrics == BiometricsType.none) return false;
     return await _localAuthentication.isDeviceSupported() &&
         await _localAuthentication.canCheckBiometrics;
   }
