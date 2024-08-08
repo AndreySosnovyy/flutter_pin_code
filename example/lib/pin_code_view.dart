@@ -17,6 +17,18 @@ class _PinCodeViewState extends State<PinCodeView> {
   final pinCodeController = DI.pinCodeController;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (pinCodeController.isPinCodeSet) return;
+      if (!context.mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const SettingsView()),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -25,65 +37,85 @@ class _PinCodeViewState extends State<PinCodeView> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: pinCodeTextEditingController,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () async {
-                if (!await pinCodeController.canTestPinCode()) return;
-                final isPinCodeCorrect = await pinCodeController
-                    .testPinCode(pinCodeTextEditingController.text);
-                if (isPinCodeCorrect) {
-                  showToast('Correct PIN CODE');
-                  if (!context.mounted) return;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsView(),
-                    ),
-                  );
-                } else {
-                  showToast('Wrong PIN CODE');
-                }
-              },
-              child: const Text('Enter PIN CODE'),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () async {
-                if (pinCodeController.currentBiometrics ==
-                    BiometricsType.none) {
-                  showToast('Biometrics is not set');
-                } else if (await pinCodeController
-                    .canAuthenticateWithBiometrics()) {
-                  await pinCodeController.testBiometrics(
-                    fingerprintReason: 'fingerprintReason',
-                    faceIdReason: 'faceIdReason',
-                  );
-                }
-              },
-              child: Text(
-                'Biometrics (${pinCodeController.currentBiometrics.title})',
-              ),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsView(),
+        child: pinCodeController.isPinCodeSet
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextField(
+                    controller: pinCodeTextEditingController,
+                    keyboardType: TextInputType.number,
                   ),
-                );
-                await pinCodeController.clear();
-              },
-              child: const Text('I forgot PIN CODE'),
-            ),
-          ],
-        ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (!await pinCodeController.canTestPinCode()) return;
+                      final isPinCodeCorrect = await pinCodeController
+                          .testPinCode(pinCodeTextEditingController.text);
+                      if (isPinCodeCorrect) {
+                        showToast('Correct PIN CODE');
+                        if (!context.mounted) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsView(),
+                          ),
+                        );
+                      } else {
+                        showToast('Wrong PIN CODE');
+                      }
+                    },
+                    child: const Text('Enter PIN CODE'),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (pinCodeController.currentBiometrics ==
+                          BiometricsType.none) {
+                        showToast('Biometrics is not set');
+                      } else if (await pinCodeController
+                          .canAuthenticateWithBiometrics()) {
+                        await pinCodeController.testBiometrics(
+                          fingerprintReason: 'fingerprintReason',
+                          faceIdReason: 'faceIdReason',
+                        );
+                      }
+                    },
+                    child: Text(
+                      'Biometrics (${pinCodeController.currentBiometrics.title})',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsView(),
+                        ),
+                      );
+                      await pinCodeController.clear();
+                    },
+                    child: const Text('I forgot PIN CODE'),
+                  ),
+                ],
+              )
+            : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Pin code is not set!'),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsView(),
+                          ),
+                        );
+                      },
+                      child: const Text('Go to Settings'),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }
