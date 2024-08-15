@@ -34,7 +34,7 @@ class AttemptsHandler {
   }
 
   /// Method to add an attempt back to the current attempts pool
- Future<void> returnAttempt(int duration) async {
+  Future<void> returnAttempt(int duration) async {
     if (!currentAttempts.containsKey(duration)) {
       throw CantReturnTimeoutException(
         'Wrong timeout duration provided ($duration), '
@@ -45,7 +45,13 @@ class AttemptsHandler {
     await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
   }
 
-  /// Method to waste an attempt from the current attempts pool
+  /// Method to restore all attempts by provided config.
+  Future<void> restoreAllAttempts() async {
+    currentAttempts = Map.from(timeoutsConfig);
+    await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
+  }
+
+  /// Method to waste an attempt from the current attempts pool.
   Future<void> wasteAttempt() async {
     if (!isAvailable) {
       throw const CantWasteAttemptException('No attempts available right now');
