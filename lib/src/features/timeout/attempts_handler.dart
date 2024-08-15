@@ -1,3 +1,7 @@
+import 'dart:math' as math;
+
+import 'package:flutter_pin_code/src/exceptions/cant_return_timeout_exception.dart';
+import 'package:flutter_pin_code/src/exceptions/cant_waste_attempt_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // TODO(Sosnovyy): add writing and reading from prefs
@@ -23,15 +27,28 @@ class AttemptsHandler {
 
   /// Method to add an attempt back to the current attempts pool
   void returnAttempt(int duration) {
-    // TODO(Sosnovyy): return one attempt with specified duration
+    if (currentAttempts.containsKey(duration)) {
+      currentAttempts[duration] = currentAttempts[duration]! + 1;
+    } else {
+      throw CantReturnTimeoutException(
+        'Wrong timeout duration provided ($duration), '
+        'only ${currentAttempts.keys} are available',
+      );
+    }
   }
 
   /// Method to waste an attempt from the current attempts pool
   void wasteAttempt() {
-    // TODO(Sosnovyy): waste one attempt
+    if (!isAvailable) {
+      throw const CantWasteAttemptException('No attempts available right now');
+    }
+    final currentAvailableDuration = currentAttempts.keys
+        .where((duration) => currentAttempts[duration]! > 0)
+        .reduce(math.min);
+    currentAttempts[currentAvailableDuration] =
+        currentAttempts[currentAvailableDuration]! - 1;
   }
 
   /// Method to check if any attempt is available right now
-  // TODO(Sosnovyy): implement method
-  bool get isAvailable => throw UnimplementedError();
+  bool get isAvailable => currentAttempts.values.any((amount) => amount > 0);
 }
