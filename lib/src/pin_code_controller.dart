@@ -311,6 +311,7 @@ class PinCodeController {
   /// Sets biometrics type.
   Future<void> _setBiometricsType(BiometricsType type) async {
     _verifyInitialized();
+    _currentBiometrics = type;
     await _prefs.setString(key + _kBiometricsTypeKeySuffix, type.name);
   }
 

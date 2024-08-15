@@ -45,6 +45,10 @@ class _SettingsViewState extends State<SettingsView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text(pinCodeController.isPinCodeSet
+                ? 'PIN CODE is set'
+                : 'PIN CODE is not set'),
+            const SizedBox(height: 12),
             TextField(
               controller: pinCodeTextEditingController,
               keyboardType: TextInputType.number,
@@ -58,7 +62,10 @@ class _SettingsViewState extends State<SettingsView> {
                   await pinCodeController
                       .setPinCode(pinCodeTextEditingController.text);
                   showToast('PIN CODE set');
+                  pinCodeTextEditingController.clear();
                   setState(() {});
+                  if (!context.mounted) return;
+                  FocusScope.of(context).unfocus();
                   widget.setPinViewState();
                 }
               },
