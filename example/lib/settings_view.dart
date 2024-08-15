@@ -5,7 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pin_code/flutter_pin_code.dart';
 
 class SettingsView extends StatefulWidget {
-  const SettingsView({super.key});
+  const SettingsView({
+    required this.setPinViewState,
+    super.key,
+  });
+
+  final VoidCallback setPinViewState;
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
@@ -54,6 +59,7 @@ class _SettingsViewState extends State<SettingsView> {
                       .setPinCode(pinCodeTextEditingController.text);
                   showToast('PIN CODE set');
                   setState(() {});
+                  widget.setPinViewState();
                 }
               },
               child: const Text('Set PIN CODE'),
@@ -118,6 +124,16 @@ class _SettingsViewState extends State<SettingsView> {
               },
               child:
                   Text('Select Request Again time (${requestAgainType.title})'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                await pinCodeController.clear();
+                setState(() {});
+                widget.setPinViewState();
+                showToast('PIN CODE and biometric are disabled');
+              },
+              child: const Text('Disable PIN CODE'),
             ),
           ],
         ),

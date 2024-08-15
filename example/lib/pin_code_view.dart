@@ -16,16 +16,31 @@ class _PinCodeViewState extends State<PinCodeView> {
   final pinCodeTextEditingController = TextEditingController();
   final pinCodeController = DI.pinCodeController;
 
+  void navigateToSettings() {
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SettingsView(
+          setPinViewState: setStateFromSettings,
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (pinCodeController.isPinCodeSet) return;
       if (!context.mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const SettingsView()),
-      );
+      navigateToSettings();
     });
+  }
+
+  void setStateFromSettings() {
+    if (!context.mounted) return;
+    pinCodeTextEditingController.clear();
+    setState(() {});
   }
 
   @override
@@ -54,11 +69,7 @@ class _PinCodeViewState extends State<PinCodeView> {
                       if (isPinCodeCorrect) {
                         showToast('Correct PIN CODE');
                         if (!context.mounted) return;
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsView(),
-                          ),
-                        );
+                        navigateToSettings();
                       } else {
                         showToast('Wrong PIN CODE');
                       }
@@ -86,11 +97,7 @@ class _PinCodeViewState extends State<PinCodeView> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () async {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SettingsView(),
-                        ),
-                      );
+                      navigateToSettings();
                       await pinCodeController.clear();
                     },
                     child: const Text('I forgot PIN CODE'),
@@ -104,13 +111,7 @@ class _PinCodeViewState extends State<PinCodeView> {
                     const Text('Pin code is not set!'),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsView(),
-                          ),
-                        );
-                      },
+                      onPressed: () => navigateToSettings(),
                       child: const Text('Go to Settings'),
                     ),
                   ],
