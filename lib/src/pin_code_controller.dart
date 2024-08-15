@@ -9,6 +9,7 @@ import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again/request_again_config.dart';
+import 'package:flutter_pin_code/src/features/timeout/attempts_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,6 +75,9 @@ class PinCodeController {
   ///
   /// Disabled if null.
   PinCodeRequestAgainConfig? _requestAgainConfig;
+
+  /// Attempts handler.
+  late final AttemptsHandler? attemptsHandler;
 
   /// Configuration for "Timeouts" feature.
   /// Number of tries is unlimited if disabled.
@@ -173,6 +177,15 @@ class PinCodeController {
       //     .listen((refreshedTimeoutDuration) {
       //   TODO(Sosnovyy): add one available attempt to test pin code
       // });
+      // }
+
+      // if (timeoutConfig != null) {
+      //   attemptsHandler = AttemptsHandler(
+      //     prefs: _prefs,
+      //     timeoutsConfig: timeoutConfig,
+      //   );
+      // } else {
+      //   attemptsHandler = null;
       // }
 
       if (requestAgainConfig != null) {
