@@ -38,8 +38,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize pin code controller!
   await DI.pinCodeController.initialize(
-    doInitialBiometricTestIfSet: true,
-    fingerprintReason: 'Touch the fingerprint sensor',
+    fingerprintReason: 'Touch t∑he fingerprint sensor',
     faceIdReason: 'Look at the camera',
   );
 

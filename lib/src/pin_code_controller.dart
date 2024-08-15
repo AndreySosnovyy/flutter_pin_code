@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_pin_code/src/errors/biometrics_messages_not_provided_error.dart';
 import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
 import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
+import 'package:flutter_pin_code/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again/request_again_config.dart';
@@ -149,9 +149,6 @@ class PinCodeController {
 
   /// Method you must call before any other method in this class.
   Future<void> initialize({
-    /// Decides if there will be an initial biometric test if set.
-    bool doInitialBiometricTestIfSet = true,
-
     /// Message for requesting fingerprint touch.
     String? fingerprintReason,
 
@@ -209,20 +206,7 @@ class PinCodeController {
         _initCompleter.complete();
         return await clear();
       }
-
       _currentBiometrics = await _fetchBiometricsType();
-      if (doInitialBiometricTestIfSet) {
-        if (faceIdReason == null || fingerprintReason == null) {
-          throw const BiometricsMessagesNotProvidedError(
-              'Biometrics not configured');
-        }
-        if (_currentBiometrics != BiometricsType.none) {
-          await testBiometrics(
-            faceIdReason: faceIdReason,
-            fingerprintReason: fingerprintReason,
-          );
-        }
-      }
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
@@ -355,6 +339,10 @@ class PinCodeController {
   Future<BiometricsType> enableBiometricsIfAvailable() async {
     _verifyInitialized();
     if (isBiometricsSet) return currentBiometrics;
+    if (_currentPin == null) {
+      throw const CantSetBiometricsWithoutPinException(
+          'Cant set biometrics without PIN CODE being set first');
+    }
     if (!await _localAuthentication.isDeviceSupported()) {
       return BiometricsType.none;
     }

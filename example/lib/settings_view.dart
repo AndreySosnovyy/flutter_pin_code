@@ -62,11 +62,15 @@ class _SettingsViewState extends State<SettingsView> {
                   widget.setPinViewState();
                 }
               },
-              child: const Text('Set PIN CODE'),
+              child: Text(
+                  'Set ${pinCodeController.isPinCodeSet ? 'new ' : ''}PIN CODE'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
+                if (!pinCodeController.isPinCodeSet) {
+                  return showToast('PIN CODE must be set first');
+                }
                 if (pinCodeController.currentBiometrics ==
                     BiometricsType.none) {
                   if (await pinCodeController.canSetBiometrics()) {
@@ -88,6 +92,9 @@ class _SettingsViewState extends State<SettingsView> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
+                if (!pinCodeController.isPinCodeSet) {
+                  return showToast('PIN CODE must be set first');
+                }
                 showAdaptiveDialog(
                   context: context,
                   builder: (context) {
@@ -138,12 +145,17 @@ class _SettingsViewState extends State<SettingsView> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
+                if (!pinCodeController.isPinCodeSet) {
+                  return showToast('PIN CODE is not set yet');
+                }
                 await pinCodeController.clear();
                 setState(() {});
                 widget.setPinViewState();
-                showToast('PIN CODE and biometric are disabled');
+                showToast(
+                    'PIN CODE ${pinCodeController.isBiometricsSet ? 'and biometrics are ' : 'is '}disabled');
               },
-              child: const Text('Disable PIN CODE'),
+              child: Text(
+                  'Disable PIN CODE${pinCodeController.isBiometricsSet ? ' and biometrics' : ''}'),
             ),
           ],
         ),
