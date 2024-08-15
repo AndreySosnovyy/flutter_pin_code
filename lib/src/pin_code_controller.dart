@@ -262,10 +262,10 @@ class PinCodeController {
     return pin;
   }
 
-  /// Returns the number of tries left before falling into another timeout.
+  /// Returns the amount of tries left before falling into another timeout.
   ///
   /// Null if timeout feature is disabled and number of tries is unlimited.
-  int? get numberOfPinCodeTries {
+  int? get amountOfTriesLeftBeforeTimeout {
     _verifyInitialized();
     // TODO(Sosnovyy): implement logic
     throw UnimplementedError();
@@ -286,8 +286,7 @@ class PinCodeController {
     _currentPin = null;
     await _secureStorage.delete(key: key);
     await _prefs.setBool(_kIsPinCodeSetKey, false);
-    await _prefs.setString(
-        key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
+    await disableBiometrics();
     // TODO(Sosnovyy): maybe remove or refactor as optional
     await _prefs.remove(_kPinCodeRequestAgainSeconds);
   }
@@ -342,17 +341,23 @@ class PinCodeController {
   ///
   /// Call this method before calling enableBiometricsIfAvailable() to check if
   /// you should ask user to use biometrics.
-  Future<bool> canAuthenticateWithBiometrics() async {
+  Future<bool> canSetBiometrics() async {
     _verifyInitialized();
-    if (currentBiometrics == BiometricsType.none) return false;
     return await _localAuthentication.isDeviceSupported() &&
         await _localAuthentication.canCheckBiometrics;
   }
+
+  /// Returns true if biometrics is set and can be tested by user.
+  bool get isBiometricsSet => currentBiometrics != BiometricsType.none;
 
   /// Enables biometrics if available on the device and returns the type of
   /// set biometrics.
   Future<BiometricsType> enableBiometricsIfAvailable() async {
     _verifyInitialized();
+    if (isBiometricsSet) return currentBiometrics;
+    if (!await _localAuthentication.isDeviceSupported()) {
+      return BiometricsType.none;
+    }
     final availableNativeTypes =
         await _localAuthentication.getAvailableBiometrics();
     if (availableNativeTypes.contains(BiometricType.face)) {
@@ -366,6 +371,13 @@ class PinCodeController {
       return BiometricsType.fingerprint;
     }
     return BiometricsType.none;
+  }
+
+  /// Disables biometrics.
+  Future<void> disableBiometrics() async {
+    _currentBiometrics = BiometricsType.none;
+    await _prefs.setString(
+        key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
   }
 
   Future<bool> testBiometrics({

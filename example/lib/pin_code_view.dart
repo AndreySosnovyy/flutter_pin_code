@@ -3,7 +3,6 @@ import 'package:example/extensions.dart';
 import 'package:example/main.dart';
 import 'package:example/settings_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pin_code/flutter_pin_code.dart';
 
 class PinCodeView extends StatefulWidget {
   const PinCodeView({super.key});
@@ -79,11 +78,9 @@ class _PinCodeViewState extends State<PinCodeView> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () async {
-                      if (pinCodeController.currentBiometrics ==
-                          BiometricsType.none) {
+                      if (!pinCodeController.isBiometricsSet) {
                         showToast('Biometrics is not set');
-                      } else if (await pinCodeController
-                          .canAuthenticateWithBiometrics()) {
+                      } else {
                         await pinCodeController.testBiometrics(
                           fingerprintReason: 'fingerprintReason',
                           faceIdReason: 'faceIdReason',

@@ -67,8 +67,18 @@ class _SettingsViewState extends State<SettingsView> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
-                await pinCodeController.enableBiometricsIfAvailable();
+                if (pinCodeController.currentBiometrics ==
+                    BiometricsType.none) {
+                  if (await pinCodeController.canSetBiometrics()) {
+                    await pinCodeController.enableBiometricsIfAvailable();
+                  } else {
+                    showToast('Biometrics is not available on this device');
+                  }
+                } else {
+                  await pinCodeController.disableBiometrics();
+                }
                 setState(() {});
+                widget.setPinViewState();
               },
               child: Text(pinCodeController.currentBiometrics ==
                       BiometricsType.none
