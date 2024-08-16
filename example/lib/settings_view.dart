@@ -81,7 +81,10 @@ class _SettingsViewState extends State<SettingsView> {
                 if (pinCodeController.currentBiometrics ==
                     BiometricsType.none) {
                   if (await pinCodeController.canSetBiometrics()) {
-                    await pinCodeController.enableBiometricsIfAvailable();
+                    final biometricsType = await pinCodeController.enableBiometricsIfAvailable();
+                    if (biometricsType == BiometricsType.none) {
+                      showToast('No biometrics available on this device');
+                    }
                   } else {
                     showToast('Biometrics is not available on this device');
                   }
