@@ -35,6 +35,7 @@ class _SettingsViewState extends State<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO(Sosnovyy): fix overflow
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -81,7 +82,8 @@ class _SettingsViewState extends State<SettingsView> {
                 if (pinCodeController.currentBiometrics ==
                     BiometricsType.none) {
                   if (await pinCodeController.canSetBiometrics()) {
-                    final biometricsType = await pinCodeController.enableBiometricsIfAvailable();
+                    final biometricsType =
+                        await pinCodeController.enableBiometricsIfAvailable();
                     if (biometricsType == BiometricsType.none) {
                       showToast('No biometrics available on this device');
                     }
@@ -166,6 +168,21 @@ class _SettingsViewState extends State<SettingsView> {
               },
               child: Text(
                   'Disable PIN CODE${pinCodeController.isBiometricsSet ? ' and biometrics' : ''}'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                if (!pinCodeController.isPinCodeSet) {
+                  return showToast('PIN CODE must be set first');
+                }
+                // TODO(Sosnovyy): show dialog with timeout settings
+                setState(() {});
+                widget.setPinViewState();
+              },
+              child: Text(
+                'Select timeout configuration '
+                '(${pinCodeController.timeoutConfig == null ? 'Disabled' : 'Enabled'})',
+              ),
             ),
           ],
         ),

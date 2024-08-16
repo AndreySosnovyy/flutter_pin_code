@@ -5,7 +5,7 @@ const int kPinCodeMaxRefreshRatio = 100;
 
 class PinCodeTimeoutConfig {
   PinCodeTimeoutConfig._({
-    required this.onTimeoutEnd,
+    required this.onTimeoutEnded,
     required this.onMaxTimeoutsReached,
     required this.timeouts,
     required this.timeoutRefreshRatio,
@@ -18,7 +18,7 @@ class PinCodeTimeoutConfig {
     required int timeoutRefreshRatio,
   }) {
     return PinCodeTimeoutConfig._(
-      onTimeoutEnd: onTimeoutEnd,
+      onTimeoutEnded: onTimeoutEnd,
       onMaxTimeoutsReached: null,
       timeouts: timeouts,
       timeoutRefreshRatio: timeoutRefreshRatio,
@@ -32,7 +32,7 @@ class PinCodeTimeoutConfig {
     required VoidCallback onMaxTimeoutsReached,
   }) {
     return PinCodeTimeoutConfig._(
-      onTimeoutEnd: onTimeoutEnd,
+      onTimeoutEnded: onTimeoutEnd,
       onMaxTimeoutsReached: onMaxTimeoutsReached,
       timeouts: timeouts,
       timeoutRefreshRatio: null,
@@ -42,7 +42,7 @@ class PinCodeTimeoutConfig {
   /// Callback which shoots after current timeout is over.
   ///
   /// Can be used to update UI or notify user
-  final VoidCallback onTimeoutEnd;
+  final VoidCallback onTimeoutEnded;
 
   /// Callback which shoots after all timeouts are over and they are not refreshable.
   ///
@@ -87,7 +87,7 @@ class PinCodeTimeoutConfig {
   @override
   String toString() {
     return 'PinCodeTimeoutConfig('
-        'onTimeoutEnd: $onTimeoutEnd, '
+        'onTimeoutEnd: $onTimeoutEnded, '
         'onMaxTimeoutsReached: $onMaxTimeoutsReached, '
         'timeouts: $timeouts, '
         'timeoutRefreshRatio: $timeoutRefreshRatio'

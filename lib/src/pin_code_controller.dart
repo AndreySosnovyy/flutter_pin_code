@@ -1,15 +1,19 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
 import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
+import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again/request_again_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/attempts_handler.dart';
+import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
+import 'package:flutter_pin_code/src/features/timeout/timeout_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,69 +25,68 @@ const String _kPinCodeRequestAgainSeconds =
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): add current attempts counter
-// TODO(Sosnovyy): add timeout handler
-// TODO(Sosnovyy): save request again config in prefs
 class PinCodeController {
   PinCodeController({
-    String? key,
+    String? storageKey,
     this.millisecondsBetweenTests = 0,
     PinCodeRequestAgainConfig? requestAgainConfig,
-    // this.timeoutConfig,
-  }) : key = key ?? _kDefaultPinCodeKey {
+    PinCodeTimeoutConfig? timeoutConfig,
+  })  : _storageKey = storageKey ?? _kDefaultPinCodeKey,
+        _timeoutConfig = timeoutConfig,
+        _requestAgainConfig = requestAgainConfig {
     if (requestAgainConfig != null) {
       if (requestAgainConfig.secondsBeforeRequestingAgain < 0) {
         throw const RequestAgainConfigError(
             'Variable "secondsBeforeRequestingAgain" must be positive or zero');
       }
     }
-    // if (timeoutConfig != null) {
-    //   if (timeoutConfig!.timeouts.isEmpty) {
-    //     throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
-    //   }
-    //   if (timeoutConfig!.timeouts.keys.reduce(math.min) < 0) {
-    //     throw const TimeoutConfigError('Timeout cannot be negative');
-    //   }
-    //   if (timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
-    //     throw const TimeoutConfigError('Number of tries cannot be negative');
-    //   }
-    //   if (timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
-    //     throw const TimeoutConfigError(
-    //         'Max timeout is $kPinCodeMaxTimeout seconds');
-    //   }
-    //   if (timeoutConfig!.timeoutRefreshRatio != null) {
-    //     if (timeoutConfig!.timeoutRefreshRatio! < 0 ||
-    //         timeoutConfig!.timeoutRefreshRatio! > 100) {
-    //       throw const TimeoutConfigError(
-    //           'Variable "timeoutRefreshRatio" must be between 0 and 100 inclusive');
-    //     }
-    //   }
-    // }
+    if (_timeoutConfig != null) {
+      if (_timeoutConfig!.timeouts.isEmpty) {
+        throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
+      }
+      if (_timeoutConfig!.timeouts.keys.reduce(math.min) < 0) {
+        throw const TimeoutConfigError('Timeout cannot be negative');
+      }
+      if (_timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
+        throw const TimeoutConfigError('Number of tries cannot be negative');
+      }
+      if (_timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
+        throw const TimeoutConfigError(
+            'Max timeout is $kPinCodeMaxTimeout seconds');
+      }
+      if (_timeoutConfig!.timeoutRefreshRatio != null) {
+        if (_timeoutConfig!.timeoutRefreshRatio! < 0 ||
+            _timeoutConfig!.timeoutRefreshRatio! > 100) {
+          throw const TimeoutConfigError(
+              'Variable "timeoutRefreshRatio" must be between 0 and 100 inclusive');
+        }
+      }
+    }
   }
 
   late final SharedPreferences _prefs;
   late final FlutterSecureStorage _secureStorage;
   late final LocalAuthentication _localAuthentication;
 
-  // late final TimeoutsRefreshEventLoop _timeoutsRefreshEventLoop;
-  // late final StreamSubscription _timeoutRefreshLoopStreamSubscription;
-
   ///  Unique key for storing current pin code.
-  late final String key;
+  late final String _storageKey;
 
   /// Configuration for "Requesting pin code again" feature.
   ///
   /// Disabled if null.
   PinCodeRequestAgainConfig? _requestAgainConfig;
 
-  /// Attempts handler.
-  late final AttemptsHandler? attemptsHandler;
-
   /// Configuration for "Timeouts" feature.
   /// Number of tries is unlimited if disabled.
   ///
   /// Disabled if null.
-  // PinCodeTimeoutConfig? timeoutConfig;
+  PinCodeTimeoutConfig? _timeoutConfig;
+
+  /// Attempts handler.
+  late AttemptsHandler? _attemptsHandler;
+
+  /// Timeout handler.
+  late TimeoutHandler? _timeoutHandler;
 
   // TODO(Sosnovyy): implement logic
   /// Number of milliseconds between tests.
@@ -106,11 +109,14 @@ class PinCodeController {
   /// Constant pin code max length.
   final int pinCodeMaxLength = 64;
 
+  /// Returns current request again config.
   PinCodeRequestAgainConfig? get requestAgainConfig {
     return _requestAgainConfig;
   }
 
   /// Sets request again config and writes it in prefs.
+  ///
+  /// Provide null to remove config.
   set requestAgainConfig(PinCodeRequestAgainConfig? config) {
     _requestAgainConfig = config;
     if (config == null) {
@@ -118,6 +124,23 @@ class PinCodeController {
     } else {
       _prefs.setInt(
           _kPinCodeRequestAgainSeconds, config.secondsBeforeRequestingAgain);
+    }
+  }
+
+  /// Returns current timeout config.
+  PinCodeTimeoutConfig? get timeoutConfig {
+    return _timeoutConfig;
+  }
+
+  /// Sets timeout config and writes it in prefs.
+  ///
+  /// Provide null to remove config.
+  set timeoutConfig(PinCodeTimeoutConfig? config) {
+    _timeoutConfig = config;
+    if (config == null) {
+      _prefs.remove(_kPinCodeRequestAgainSeconds);
+    } else {
+      // TODO(Sosnovyy): write necessary data from config to prefs
     }
   }
 
@@ -166,24 +189,21 @@ class PinCodeController {
 
       // TODO(Sosnovyy): start timeout here if needed and return
 
-      // if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
-      // _timeoutsRefreshEventLoop = TimeoutsRefreshEventLoop(prefs: _prefs);
-      // await _timeoutsRefreshEventLoop.initialize();
-      // _timeoutRefreshLoopStreamSubscription = _timeoutsRefreshEventLoop
-      //     .refreshStream
-      //     .listen((refreshedTimeoutDuration) {
-      //   TODO(Sosnovyy): add one available attempt to test pin code
-      // });
-      // }
-
-      // if (timeoutConfig != null) {
-      //   attemptsHandler = AttemptsHandler(
-      //     prefs: _prefs,
-      //     timeoutsConfig: timeoutConfig,
-      //   );
-      // } else {
-      //   attemptsHandler = null;
-      // }
+      if (_timeoutConfig != null) {
+        _attemptsHandler = AttemptsHandler(
+          prefs: _prefs,
+          timeoutsMap: _timeoutConfig!.timeouts,
+        );
+        _timeoutHandler = TimeoutHandler(
+          prefs: _prefs,
+          onTimeoutEnded: _timeoutConfig!.onTimeoutEnded,
+        );
+        await _attemptsHandler!.initialize();
+        await _timeoutHandler!.initialize();
+      } else {
+        _attemptsHandler = null;
+        _timeoutHandler = null;
+      }
 
       if (requestAgainConfig != null) {
         await _prefs.setInt(
@@ -241,7 +261,7 @@ class PinCodeController {
   }
 
   Future<String?> _fetchPinCode() async {
-    final pin = await _secureStorage.read(key: key);
+    final pin = await _secureStorage.read(key: _storageKey);
     _currentPin = pin;
     return pin;
   }
@@ -268,7 +288,7 @@ class PinCodeController {
     _verifyInitialized();
     if (_currentPin == null) return;
     _currentPin = null;
-    await _secureStorage.delete(key: key);
+    await _secureStorage.delete(key: _storageKey);
     await _prefs.setBool(_kIsPinCodeSetKey, false);
     await disableBiometrics();
     // TODO(Sosnovyy): maybe remove or refactor as optional
@@ -304,7 +324,7 @@ class PinCodeController {
           'Pin code is too long, max length is $pinCodeMaxLength');
     }
     _currentPin = pin;
-    await _secureStorage.write(key: key, value: pin);
+    await _secureStorage.write(key: _storageKey, value: pin);
     await _prefs.setBool(_kIsPinCodeSetKey, true);
   }
 
@@ -312,12 +332,12 @@ class PinCodeController {
   Future<void> _setBiometricsType(BiometricsType type) async {
     _verifyInitialized();
     _currentBiometrics = type;
-    await _prefs.setString(key + _kBiometricsTypeKeySuffix, type.name);
+    await _prefs.setString(_storageKey + _kBiometricsTypeKeySuffix, type.name);
   }
 
   /// Returns the type of set biometrics.
   Future<BiometricsType> _fetchBiometricsType() async {
-    final name = _prefs.getString(key + _kBiometricsTypeKeySuffix);
+    final name = _prefs.getString(_storageKey + _kBiometricsTypeKeySuffix);
     if (name == null) return BiometricsType.none;
     return BiometricsType.values.byName(name);
   }
@@ -367,7 +387,7 @@ class PinCodeController {
   Future<void> disableBiometrics() async {
     _currentBiometrics = BiometricsType.none;
     await _prefs.setString(
-        key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
+        _storageKey + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
   }
 
   /// Requests biometrics from user to sign in by system dialog and without pin.
@@ -405,10 +425,7 @@ class PinCodeController {
   /// Disposes pin code controller.
   Future<void> dispose() async {
     _verifyInitialized();
-    // if (timeoutConfig != null && timeoutConfig!.isRefreshable) {
-    // _timeoutRefreshLoopStreamSubscription.cancel();
-    // await _timeoutsRefreshEventLoop.dispose();
-    // }
+    await _timeoutHandler?.dispose();
   }
 }
 

@@ -47,4 +47,9 @@ class TimeoutHandler {
     return _refresher.currentTimeoutToBeRefreshed!.expirationTimestamp
         .difference(DateTime.now());
   }
+
+  /// Method to dispose the timeout handler.
+  Future<void> dispose() async {
+    await _refresher.dispose();
+  }
 }

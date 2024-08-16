@@ -10,13 +10,13 @@ const String _kAttemptsPoolKey = 'flutter_pin_code.attempts_pool';
 class AttemptsHandler {
   AttemptsHandler({
     required SharedPreferences prefs,
-    required this.timeoutsConfig,
+    required this.timeoutsMap,
   }) : _prefs = prefs;
 
   final SharedPreferences _prefs;
 
   /// Timeouts configuration from the general config.
-  final Map<int, int> timeoutsConfig;
+  final Map<int, int> timeoutsMap;
 
   /// Current available attempts map in <seconds, amount> format.
   late final Map<int, int> currentAttempts;
@@ -27,7 +27,7 @@ class AttemptsHandler {
     // TODO(Sosnovyy): initialize currentAttempts from prefs
     final rawPool = _prefs.getString(_kAttemptsPoolKey);
     if (rawPool == null) {
-      currentAttempts = Map.from(timeoutsConfig);
+      currentAttempts = Map.from(timeoutsMap);
     } else {
       currentAttempts = json.decode(rawPool) as Map<int, int>;
     }
@@ -47,12 +47,15 @@ class AttemptsHandler {
 
   /// Method to restore all attempts by provided config.
   Future<void> restoreAllAttempts() async {
-    currentAttempts = Map.from(timeoutsConfig);
+    currentAttempts = Map.from(timeoutsMap);
     await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
   }
 
   /// Method to waste an attempt from the current attempts pool.
-  Future<void> wasteAttempt() async {
+  ///
+  /// Returns true there are more available attempts to test before falling into timeout.
+  /// Returns false if no more attempts are available before timeout.
+  Future<bool> wasteAttempt() async {
     if (!isAvailable) {
       throw const CantWasteAttemptException('No attempts available right now');
     }
@@ -62,6 +65,8 @@ class AttemptsHandler {
     currentAttempts[currentAvailableDuration] =
         currentAttempts[currentAvailableDuration]! - 1;
     await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
+    // TODO(Sosnovyy): check if there are more attempts available and return bool
+    return true;
   }
 
   /// Method to check if any attempt is available right now
