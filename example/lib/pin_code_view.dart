@@ -81,10 +81,16 @@ class _PinCodeViewState extends State<PinCodeView> {
                       if (!pinCodeController.isBiometricsSet) {
                         showToast('Biometrics is not set');
                       } else {
-                        await pinCodeController.testBiometrics(
+                        final result = await pinCodeController.testBiometrics(
                           fingerprintReason: 'fingerprintReason',
                           faceIdReason: 'faceIdReason',
                         );
+                        if (result) {
+                          showToast('Successfully authenticated with biometrics');
+                          navigateToSettings();
+                        } else {
+                          showToast('Failed to authenticate with biometrics');
+                        }
                       }
                     },
                     child: Text(

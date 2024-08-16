@@ -369,6 +369,10 @@ class PinCodeController {
         key + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
   }
 
+  /// Requests biometrics from user to sign in by system dialog and without pin.
+  ///
+  /// If you want to have the initial request when you open your app or go to
+  /// the pin code screen, you have to implement this logic manually!
   Future<bool> testBiometrics({
     /// Message for requesting fingerprint touch.
     required String fingerprintReason,
