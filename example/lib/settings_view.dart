@@ -46,7 +46,7 @@ class _SettingsViewState extends State<SettingsView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(pinCodeController.isPinCodeSet
-                ? 'PIN CODE is set'
+                ? 'PIN CODE${pinCodeController.isBiometricsSet ? ' and biometrics are ' : ' is '}set'
                 : 'PIN CODE is not set'),
             const SizedBox(height: 12),
             TextField(
