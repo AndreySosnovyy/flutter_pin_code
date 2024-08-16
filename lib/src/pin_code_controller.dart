@@ -322,6 +322,7 @@ class PinCodeController {
     return BiometricsType.values.byName(name);
   }
 
+  // TODO(Sosnovyy): maybe add getAvailableBiometrics check to this method
   /// Returns true if biometrics are available on the device and can be set.
   ///
   /// Call this method before calling enableBiometricsIfAvailable() to check if

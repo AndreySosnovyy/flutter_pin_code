@@ -1,18 +1,18 @@
 class Timeout {
   Timeout({
-    required this.duration,
+    required this.durationInSeconds,
     required this.expirationTimestamp,
   });
 
   /// Duration of the timeout in seconds
-  final int duration;
+  final int durationInSeconds;
 
   /// Timestamp of the expiration
   final DateTime expirationTimestamp;
 
   factory Timeout.fromMap(Map<String, dynamic> json) {
     return Timeout(
-      duration: json['duration'] as int,
+      durationInSeconds: json['duration'] as int,
       expirationTimestamp: DateTime.fromMillisecondsSinceEpoch(
           json['expirationTimestamp'] as int),
     );
@@ -20,7 +20,7 @@ class Timeout {
 
   Map<String, dynamic> toMap() {
     return {
-      'duration': duration,
+      'durationInSeconds': durationInSeconds,
       'expirationTimestamp': expirationTimestamp.millisecondsSinceEpoch,
     };
   }
@@ -28,7 +28,7 @@ class Timeout {
   @override
   String toString() {
     return 'Timeout('
-        'duration: $duration, '
+        'durationInSeconds: $durationInSeconds, '
         'expirationTimestamp: $expirationTimestamp'
         ')';
   }
