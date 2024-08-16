@@ -169,21 +169,6 @@ class _SettingsViewState extends State<SettingsView> {
               child: Text(
                   'Disable PIN CODE${pinCodeController.isBiometricsSet ? ' and biometrics' : ''}'),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () async {
-                if (!pinCodeController.isPinCodeSet) {
-                  return showToast('PIN CODE must be set first');
-                }
-                // TODO(Sosnovyy): show dialog with timeout settings
-                setState(() {});
-                widget.setPinViewState();
-              },
-              child: Text(
-                'Select timeout configuration '
-                '(${pinCodeController.timeoutConfig == null ? 'Disabled' : 'Enabled'})',
-              ),
-            ),
           ],
         ),
       ),

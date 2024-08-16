@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_provided.dart';
 
 const int kPinCodeMaxTimeout = 21600;
 const int kPinCodeMaxRefreshRatio = 100;
@@ -6,10 +7,10 @@ const int kPinCodeMaxRefreshRatio = 100;
 class PinCodeTimeoutConfig {
   PinCodeTimeoutConfig._({
     required this.onTimeoutEnded,
-    required this.onMaxTimeoutsReached,
+    VoidCallback? onMaxTimeoutsReached,
     required this.timeouts,
     required this.timeoutRefreshRatio,
-  });
+  }) : _onMaxTimeoutsReached = onMaxTimeoutsReached;
 
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
   factory PinCodeTimeoutConfig.refreshable({
@@ -42,7 +43,7 @@ class PinCodeTimeoutConfig {
   /// Callback which shoots after current timeout is over.
   ///
   /// Can be used to update UI or notify user
-  final VoidCallback onTimeoutEnded;
+  VoidCallback onTimeoutEnded;
 
   /// Callback which shoots after all timeouts are over and they are not refreshable.
   ///
@@ -50,7 +51,20 @@ class PinCodeTimeoutConfig {
   /// sign him out and send back to authorization screen.
   ///
   /// This method will never be called if timeouts are refreshable.
-  final VoidCallback? onMaxTimeoutsReached;
+  VoidCallback? _onMaxTimeoutsReached;
+
+  // TODO(Sosnovyy): add doc via template
+  VoidCallback? get onMaxTimeoutsReached => _onMaxTimeoutsReached;
+
+  // TODO(Sosnovyy): add doc via template
+  set onMaxTimeoutsReached(VoidCallback? value) {
+    if (!isRefreshable && value == null) {
+      throw const NoOnMaxTimeoutsReachedCallbackProvided(
+          'No onMaxTimeoutsReached callback provided '
+          'but the configuration is refreshable and must have it');
+    }
+    _onMaxTimeoutsReached = value;
+  }
 
   /// Map containing number of tries before every timeout
   /// where key is number of seconds and value is number of tries.

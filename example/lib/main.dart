@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pin_code/flutter_pin_code.dart';
 
 class DI {
+  // This configuration is used in example by default
   static final refreshableTimeoutConfig = PinCodeTimeoutConfig.refreshable(
     onTimeoutEnd: () {
       // Place your logic here
@@ -12,6 +13,7 @@ class DI {
     timeoutRefreshRatio: 10,
   );
 
+  // You can try to change default configuration above with this one to test it
   static final notRefreshableTimeoutConfig =
       PinCodeTimeoutConfig.notRefreshable(
     onTimeoutEnd: () {
@@ -21,12 +23,14 @@ class DI {
     timeouts: {0: 3, 60: 2, 360: 1},
     onMaxTimeoutsReached: () {
       // Place your logic here
-      print('Sign the user out and navigate him to auth screen!');
+      print('Sign the user out and perform navigation to the auth screen!');
     },
   );
 
   // Place the controller in your DI or anywhere you think is most appropriate.
-  static final pinCodeController = PinCodeController();
+  static final pinCodeController = PinCodeController(
+    timeoutConfig: refreshableTimeoutConfig,
+  );
 }
 
 void main() async {

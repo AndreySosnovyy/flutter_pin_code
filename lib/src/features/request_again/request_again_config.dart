@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+// TODO(Sosnovyy): add copyWith method (needed in case you want to change callbacks)
 class PinCodeRequestAgainConfig {
   PinCodeRequestAgainConfig({
     required this.secondsBeforeRequestingAgain,
@@ -9,7 +10,7 @@ class PinCodeRequestAgainConfig {
   /// Number of seconds needed to pass before requesting the pin code another time
   ///
   /// Null for disabling the feature of
-  int secondsBeforeRequestingAgain;
+  final int secondsBeforeRequestingAgain;
 
   /// Callback that will be called when you need to request the pin code again
   ///
