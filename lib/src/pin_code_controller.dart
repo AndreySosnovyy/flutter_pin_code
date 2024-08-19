@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
 import 'package:flutter_pin_code/src/errors/general_config_error.dart';
 import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
+import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_provided.dart';
 import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
 import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
@@ -211,6 +212,9 @@ class PinCodeController {
         _timeoutHandler = TimeoutHandler(
           prefs: _prefs,
           onTimeoutEnded: _timeoutConfig!.onTimeoutEnded,
+          onTimeoutStarted: (durationInSeconds) => _timeoutConfig!
+              .onTimeoutStarted
+              ?.call(Duration(seconds: durationInSeconds)),
         );
         await _attemptsHandler!.initialize();
         await _timeoutHandler!.initialize();
@@ -333,14 +337,22 @@ class PinCodeController {
     if (isTimeoutConfigured && _timeoutHandler!.isTimeoutRunning) {
       throw const CantTestPinException('Timeout is running!');
     }
-    if (pin == _currentPin) return true;
+
+    _lastTestTimestamp = DateTime.now();
+    if (pin == _currentPin) {
+      _attemptsHandler?.restoreAllAttempts();
+      return true;
+    }
     if (isTimeoutConfigured) {
       final wasteResponse = await _attemptsHandler!.wasteAttempt();
-      if (wasteResponse.areAllAttemptsWasted) {
-        if (!_timeoutConfig!.isRefreshable) {
-          _timeoutConfig!.onMaxTimeoutsReached!();
-          return false;
+      if (wasteResponse.areAllAttemptsWasted &&
+          !_timeoutConfig!.isRefreshable) {
+        if (_timeoutConfig!.onMaxTimeoutsReached == null) {
+          throw const NoOnMaxTimeoutsReachedCallbackProvided(
+              'No callback provided, but it must be already called');
         }
+        _timeoutConfig!.onMaxTimeoutsReached!();
+        return false;
       }
       if (wasteResponse.amountOfAvailableAttemptsBeforeTimeout == 0) {
         // FIXME(Sosnovyy): Null check operator used on a null value

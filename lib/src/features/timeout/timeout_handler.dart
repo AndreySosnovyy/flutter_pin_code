@@ -9,12 +9,16 @@ class TimeoutHandler {
   TimeoutHandler({
     required SharedPreferences prefs,
     required this.onTimeoutEnded,
+    required this.onTimeoutStarted,
   }) : _prefs = prefs;
 
   final SharedPreferences _prefs;
 
+  /// Callback to be called when timeout has started.
+  final Function(int durationInSeconds)? onTimeoutStarted;
+
   /// Callback to be called when timeout is ended.
-  final VoidCallback onTimeoutEnded;
+  final VoidCallback? onTimeoutEnded;
 
   /// Event loop to handle timeout refreshing.
   late final TimeoutRefresher _refresher;
@@ -35,6 +39,7 @@ class TimeoutHandler {
           'Another timeout is already running. '
           'You have to wait for it to finish before starting a new one.');
     }
+    onTimeoutStarted?.call(durationInSeconds);
     _refresher.setCurrentTimeout(durationInSeconds: durationInSeconds);
   }
 

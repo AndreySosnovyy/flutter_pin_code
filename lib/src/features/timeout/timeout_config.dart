@@ -4,9 +4,12 @@ import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_
 const int kPinCodeMaxTimeout = 21600;
 const int kPinCodeMaxRefreshRatio = 100;
 
+typedef OnTimeoutStartedCallback = Function(Duration timeoutDuration);
+
 class PinCodeTimeoutConfig {
   PinCodeTimeoutConfig._({
     required this.onTimeoutEnded,
+    required this.onTimeoutStarted,
     VoidCallback? onMaxTimeoutsReached,
     required this.timeouts,
     required this.timeoutRefreshRatio,
@@ -15,11 +18,13 @@ class PinCodeTimeoutConfig {
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
   factory PinCodeTimeoutConfig.refreshable({
     required Map<int, int> timeouts,
-    required VoidCallback onTimeoutEnd,
     required int timeoutRefreshRatio,
+    VoidCallback? onTimeoutEnded,
+    OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
-      onTimeoutEnded: onTimeoutEnd,
+      onTimeoutEnded: onTimeoutEnded,
+      onTimeoutStarted: onTimeoutStarted,
       onMaxTimeoutsReached: null,
       timeouts: timeouts,
       timeoutRefreshRatio: timeoutRefreshRatio,
@@ -29,11 +34,13 @@ class PinCodeTimeoutConfig {
   /// Creates PinCodeTimeoutConfig with not refreshable timeouts
   factory PinCodeTimeoutConfig.notRefreshable({
     required Map<int, int> timeouts,
-    required VoidCallback onTimeoutEnd,
     required VoidCallback onMaxTimeoutsReached,
+    VoidCallback? onTimeoutEnded,
+    OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
-      onTimeoutEnded: onTimeoutEnd,
+      onTimeoutEnded: onTimeoutEnded,
+      onTimeoutStarted: onTimeoutStarted,
       onMaxTimeoutsReached: onMaxTimeoutsReached,
       timeouts: timeouts,
       timeoutRefreshRatio: null,
@@ -42,8 +49,13 @@ class PinCodeTimeoutConfig {
 
   /// Callback which shoots after current timeout is over.
   ///
-  /// Can be used to update UI or notify user
-  VoidCallback onTimeoutEnded;
+  /// Can be used to update UI or notify user.
+  VoidCallback? onTimeoutEnded;
+
+  /// Callback which shoots after a timeout has started.
+  ///
+  /// Can be used to update UI or notify user.
+  OnTimeoutStartedCallback? onTimeoutStarted;
 
   /// {@template onMaxTimeoutsReached}
   /// Callback which shoots after all timeouts are over and they are not refreshable.

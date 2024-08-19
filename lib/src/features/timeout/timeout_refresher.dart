@@ -41,7 +41,7 @@ class TimeoutRefresher {
   final int iterateInterval;
 
   /// Callback to be called when the timeout is over and refreshed.
-  final VoidCallback onTimeoutEnded;
+  final VoidCallback? onTimeoutEnded;
 
   /// Periodic timer for iterating to make updates.
   Timer? _timer;
@@ -60,7 +60,7 @@ class TimeoutRefresher {
     final timeout = currentTimeoutToBeRefreshed!;
     if (DateTime.now().isAfter(timeout.expirationTimestamp)) {
       currentTimeoutToBeRefreshed = null;
-      onTimeoutEnded();
+      onTimeoutEnded?.call();
       await _writeCurrentTimeoutToDisk();
       _stopIterating();
     }
