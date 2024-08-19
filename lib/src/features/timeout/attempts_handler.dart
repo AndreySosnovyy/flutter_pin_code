@@ -44,13 +44,15 @@ class AttemptsHandler {
       );
     }
     currentAttempts[duration] = currentAttempts[duration]! + 1;
-    await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
+    await _prefs.setString(
+        _kAttemptsPoolKey, json.encode(currentAttempts.toString()));
   }
 
   /// Method to restore all attempts by provided config.
   Future<void> restoreAllAttempts() async {
     currentAttempts = Map.from(timeoutsMap);
-    await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
+    await _prefs.setString(
+        _kAttemptsPoolKey, json.encode(currentAttempts.toString()));
   }
 
   /// Method to waste an attempt from the current attempts pool.
@@ -66,7 +68,8 @@ class AttemptsHandler {
         .reduce(math.min);
     currentAttempts[currentAvailableDuration] =
         currentAttempts[currentAvailableDuration]! - 1;
-    await _prefs.setString(_kAttemptsPoolKey, json.encode(currentAttempts));
+    await _prefs.setString(
+        _kAttemptsPoolKey, json.encode(currentAttempts.toString()));
     final hasNextAttemptsBunch = currentAttempts.keys
         .any((duration) => duration > currentAvailableDuration);
     final amountOfAvailableAttemptsBeforeTimeout =

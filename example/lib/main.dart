@@ -9,7 +9,7 @@ class DI {
       // Place your logic here
       print('Notify user about timeout ending if needed!');
     },
-    timeouts: {0: 3, 60: 2, 360: 1},
+    timeouts: {0: 3, 30: 2, 60: 1},
     timeoutRefreshRatio: 10,
   );
 
@@ -20,7 +20,7 @@ class DI {
       // Place your logic here
       print('Notify user about timeout ending!');
     },
-    timeouts: {0: 3, 60: 2, 360: 1},
+    timeouts: {0: 3, 30: 2, 60: 1},
     onMaxTimeoutsReached: () {
       // Place your logic here
       print('Sign the user out and perform navigation to the auth screen!');
