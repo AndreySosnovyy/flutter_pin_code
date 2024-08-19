@@ -45,18 +45,20 @@ class PinCodeTimeoutConfig {
   /// Can be used to update UI or notify user
   VoidCallback onTimeoutEnded;
 
+  /// {@template onMaxTimeoutsReached}
   /// Callback which shoots after all timeouts are over and they are not refreshable.
   ///
   /// Can be used to notify the user that he used all attempts,
   /// sign him out and send back to authorization screen.
   ///
   /// This method will never be called if timeouts are refreshable.
+  /// {@endtemplate}
   VoidCallback? _onMaxTimeoutsReached;
 
-  // TODO(Sosnovyy): add doc via template
+  /// {@macro onMaxTimeoutsReached}
   VoidCallback? get onMaxTimeoutsReached => _onMaxTimeoutsReached;
 
-  // TODO(Sosnovyy): add doc via template
+  /// {@macro onMaxTimeoutsReached}
   set onMaxTimeoutsReached(VoidCallback? value) {
     if (!isRefreshable && value == null) {
       throw const NoOnMaxTimeoutsReachedCallbackProvided(

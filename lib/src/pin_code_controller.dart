@@ -291,10 +291,9 @@ class PinCodeController {
   /// Returns the amount of tries left before falling into another timeout.
   ///
   /// Null if timeout feature is disabled and number of tries is unlimited.
-  int? get amountOfTriesLeftBeforeTimeout {
+  int? get amountOfAttemptsLeftBeforeTimeout {
     _verifyInitialized();
-    // TODO(Sosnovyy): implement logic
-    throw UnimplementedError();
+    return _attemptsHandler?.attemptsAmountBeforeTimeout;
   }
 
   /// Returns the current pin code's length.
@@ -413,7 +412,6 @@ class PinCodeController {
     } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
         availableNativeTypes.contains(BiometricType.strong) ||
         availableNativeTypes.contains(BiometricType.weak)) {
-      // TODO(Sosnovyy): check if the condition if fully valid
       await _setBiometricsType(BiometricsType.fingerprint);
       return BiometricsType.fingerprint;
     }

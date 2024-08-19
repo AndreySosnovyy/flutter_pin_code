@@ -95,4 +95,12 @@ class AttemptsHandler {
 
   /// Method to check if any attempt is available right now
   bool get isAvailable => currentAttempts.values.any((amount) => amount > 0);
+
+  /// Returns the amount of available attempts before timeout
+  int get attemptsAmountBeforeTimeout {
+    final currentAvailableDuration = currentAttempts.keys
+        .where((duration) => currentAttempts[duration]! > 0)
+        .reduce(math.min);
+    return currentAttempts[currentAvailableDuration]!;
+  }
 }
