@@ -40,7 +40,7 @@ class PinCodeController {
             'Variable "secondsBeforeRequestingAgain" must be positive or zero');
       }
     }
-    if (_timeoutConfig != null) {
+    if (isTimeoutConfigured) {
       if (_timeoutConfig!.timeouts.isEmpty) {
         throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
       }
@@ -65,7 +65,9 @@ class PinCodeController {
   }
 
   late final SharedPreferences _prefs;
+
   late final FlutterSecureStorage _secureStorage;
+
   late final LocalAuthentication _localAuthentication;
 
   ///  Unique key for storing current pin code.
@@ -113,6 +115,9 @@ class PinCodeController {
   PinCodeRequestAgainConfig? get requestAgainConfig {
     return _requestAgainConfig;
   }
+
+  /// Returns true if Timeout config is provided
+  bool get isTimeoutConfigured => _timeoutConfig != null;
 
   /// Sets request again config and writes it in prefs.
   ///
@@ -189,7 +194,7 @@ class PinCodeController {
 
       // TODO(Sosnovyy): start timeout here if needed and return
 
-      if (_timeoutConfig != null) {
+      if (isTimeoutConfigured) {
         _attemptsHandler = AttemptsHandler(
           prefs: _prefs,
           timeoutsMap: _timeoutConfig!.timeouts,
@@ -305,12 +310,19 @@ class PinCodeController {
       throw const PinCodeNotSetException('Pin code is not set, but was tested');
     }
     if (pin == _currentPin) return true;
-    // if (timeoutConfig != null) {
-    // TODO(Sosnovyy): decrease attempts counter and perform timeouts logic
-    // if (timeoutConfig!.isRefreshable) {
-    // TODO(Sosnovyy): add timeout to refresh loop
-    // }
-    // }
+    if (isTimeoutConfigured) {
+      final wasteResponse = await _attemptsHandler!.wasteAttempt();
+      if (wasteResponse.areAllAttemptsWasted) {
+        if (!_timeoutConfig!.isRefreshable) {
+          _timeoutConfig!.onMaxTimeoutsReached!();
+          return false;
+        }
+      }
+      if (wasteResponse.amountOfAvailableAttemptsBeforeTimeout == 0) {
+        _timeoutHandler!.startTimeout(
+            durationInSeconds: wasteResponse.timeoutDurationInSeconds!);
+      }
+    }
     return false;
   }
 
