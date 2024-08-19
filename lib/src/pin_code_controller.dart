@@ -3,11 +3,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
+import 'package:flutter_pin_code/src/errors/general_config_error.dart';
 import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
 import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
 import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
+import 'package:flutter_pin_code/src/exceptions/cant_test_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
 import 'package:flutter_pin_code/src/features/request_again/request_again_config.dart';
@@ -62,6 +64,10 @@ class PinCodeController {
         }
       }
     }
+    if (millisecondsBetweenTests < 0 || millisecondsBetweenTests > 3000) {
+      throw const GeneralConfigError(
+          'Milliseconds between tests must be between 0 and 3000');
+    }
   }
 
   late final SharedPreferences _prefs;
@@ -90,8 +96,9 @@ class PinCodeController {
   /// Timeout handler.
   late TimeoutHandler? _timeoutHandler;
 
-  // TODO(Sosnovyy): implement logic
   /// Number of milliseconds between tests.
+  ///
+  /// Max value is 3000.
   final int millisecondsBetweenTests;
 
   /// Completer for checking if initialization method is called before any other operations.
@@ -103,13 +110,18 @@ class PinCodeController {
   /// Current biometrics.
   late BiometricsType _currentBiometrics;
 
+  /// Constant pin code max length.
+  final int pinCodeMaxLength = 64;
+
+  /// Timestamp of last pin code test.
+  ///
+  /// Null if pin code hasn't been tested yet in this session.
+  DateTime? _lastTestTimestamp;
+
   BiometricsType get currentBiometrics {
     _verifyInitialized();
     return _currentBiometrics;
   }
-
-  /// Constant pin code max length.
-  final int pinCodeMaxLength = 64;
 
   /// Returns current request again config.
   PinCodeRequestAgainConfig? get requestAgainConfig {
@@ -289,15 +301,16 @@ class PinCodeController {
   }
 
   /// Removes pin code (+ its configs) and biometrics from storage.
-  Future<void> clear() async {
+  Future<void> clear({bool clearConfigs = true}) async {
     _verifyInitialized();
     if (_currentPin == null) return;
     _currentPin = null;
     await _secureStorage.delete(key: _storageKey);
     await _prefs.setBool(_kIsPinCodeSetKey, false);
     await disableBiometrics();
-    // TODO(Sosnovyy): maybe remove or refactor as optional
-    await _prefs.remove(_kPinCodeRequestAgainSeconds);
+    if (clearConfigs) {
+      await _prefs.remove(_kPinCodeRequestAgainSeconds);
+    }
   }
 
   /// Checks if provided pin matches the current set one.
@@ -308,6 +321,12 @@ class PinCodeController {
     _verifyInitialized();
     if (_currentPin == null) {
       throw const PinCodeNotSetException('Pin code is not set, but was tested');
+    }
+    if (_lastTestTimestamp != null &&
+        _lastTestTimestamp!.difference(DateTime.now()).inMilliseconds.abs() <=
+            millisecondsBetweenTests) {
+      throw CantTestPinException(
+          'Too fast tests. You must delay $millisecondsBetweenTests ms between tests');
     }
     if (pin == _currentPin) return true;
     if (isTimeoutConfigured) {
@@ -354,7 +373,6 @@ class PinCodeController {
     return BiometricsType.values.byName(name);
   }
 
-  // TODO(Sosnovyy): maybe add getAvailableBiometrics check to this method
   /// Returns true if biometrics are available on the device and can be set.
   ///
   /// Call this method before calling enableBiometricsIfAvailable() to check if
@@ -362,7 +380,8 @@ class PinCodeController {
   Future<bool> canSetBiometrics() async {
     _verifyInitialized();
     return await _localAuthentication.isDeviceSupported() &&
-        await _localAuthentication.canCheckBiometrics;
+        await _localAuthentication.canCheckBiometrics &&
+        (await _localAuthentication.getAvailableBiometrics()).isNotEmpty;
   }
 
   /// Returns true if biometrics is set and can be tested by user.
@@ -422,7 +441,7 @@ class PinCodeController {
     } else if (availableBiometrics.contains(BiometricType.face)) {
       reason = faceIdReason;
     } else {
-      reason = '';
+      reason = ''; // This will throw an exception
     }
     return await _localAuthentication.authenticate(
       localizedReason: reason,
