@@ -175,7 +175,6 @@ class PinCodeController {
         throw const RequestAgainCallbackNotSetError(
             'Request again callback not set');
       }
-      // TODO(Sosnovyy): check if there is no timeout
       final rawTimestamp = _prefs.getString(_kBackgroundTimestampKey);
       if (rawTimestamp == null) return;
       final timestamp =
@@ -203,8 +202,6 @@ class PinCodeController {
       _prefs = await SharedPreferences.getInstance();
       _secureStorage = const FlutterSecureStorage();
       _localAuthentication = LocalAuthentication();
-
-      // TODO(Sosnovyy): start timeout here if needed and return
 
       if (isTimeoutConfigured) {
         _attemptsHandler = AttemptsHandler(
@@ -239,11 +236,12 @@ class PinCodeController {
       _currentPin = await _fetchPinCode();
       final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
       if (!isPinCodeSet && _currentPin != null) {
-        _currentBiometrics = BiometricsType.none;
         _initCompleter.complete();
         return await clear();
       }
       _currentBiometrics = await _fetchBiometricsType();
+
+      // TODO(Sosnovyy): start timeout here if needed
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
@@ -260,10 +258,17 @@ class PinCodeController {
     }
   }
 
+  /// Checks if necessary delay set in [millisecondsBetweenTests] between tests passed.
+  bool get isDelayBetweenTestsPassed =>
+      _lastTestTimestamp == null ||
+      DateTime.now().difference(_lastTestTimestamp!).inMilliseconds >
+          millisecondsBetweenTests;
+
   /// Checks if pin code can be tested (not disabled by timeout)
   Future<bool> canTestPinCode() async {
     _verifyInitialized();
-    // TODO(Sosnovyy): check if there are no timeout right now
+    if (isTimeoutConfigured && _timeoutHandler!.isTimeoutRunning) return false;
+    if (!isDelayBetweenTestsPassed) return false;
     if (_currentPin == null) return false;
     return true;
   }
@@ -322,11 +327,12 @@ class PinCodeController {
     if (_currentPin == null) {
       throw const PinCodeNotSetException('Pin code is not set, but was tested');
     }
-    if (_lastTestTimestamp != null &&
-        _lastTestTimestamp!.difference(DateTime.now()).inMilliseconds.abs() <=
-            millisecondsBetweenTests) {
+    if (!isDelayBetweenTestsPassed) {
       throw CantTestPinException(
           'Too fast tests. You must delay $millisecondsBetweenTests ms between tests');
+    }
+    if (isTimeoutConfigured && _timeoutHandler!.isTimeoutRunning) {
+      throw const CantTestPinException('Timeout is running!');
     }
     if (pin == _currentPin) return true;
     if (isTimeoutConfigured) {
