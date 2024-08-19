@@ -12,9 +12,10 @@ class Timeout {
 
   factory Timeout.fromMap(Map<String, dynamic> json) {
     return Timeout(
-      durationInSeconds: json['duration'] as int,
+      durationInSeconds: json['durationInSeconds'] as int,
       expirationTimestamp: DateTime.fromMillisecondsSinceEpoch(
-          json['expirationTimestamp'] as int),
+        json['expirationTimestamp'] as int,
+      ),
     );
   }
 

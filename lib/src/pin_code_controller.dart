@@ -343,6 +343,7 @@ class PinCodeController {
         }
       }
       if (wasteResponse.amountOfAvailableAttemptsBeforeTimeout == 0) {
+        // FIXME(Sosnovyy): Null check operator used on a null value
         _timeoutHandler!.startTimeout(
             durationInSeconds: wasteResponse.timeoutDurationInSeconds!);
       }

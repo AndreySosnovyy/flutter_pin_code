@@ -23,15 +23,18 @@ class AttemptsHandler {
   /// Current available attempts map in <seconds, amount> format.
   late final Map<int, int> currentAttempts;
 
+  Map<String, String> get currentAttemptsAsStringMap =>
+      currentAttempts.map((k, v) => MapEntry(k.toString(), v.toString()));
+
   /// Method to initialize the attempts handler.
   /// This method must be called before any other method in this class.
   Future<void> initialize() async {
-    // TODO(Sosnovyy): initialize currentAttempts from prefs
     final rawPool = _prefs.getString(_kAttemptsPoolKey);
     if (rawPool == null) {
       currentAttempts = Map.from(timeoutsMap);
     } else {
-      currentAttempts = json.decode(rawPool) as Map<int, int>;
+      currentAttempts = (json.decode(rawPool)).map<int, int>(
+          (k, v) => MapEntry(int.parse(k), int.parse(v)));
     }
   }
 
@@ -45,17 +48,17 @@ class AttemptsHandler {
     }
     currentAttempts[duration] = currentAttempts[duration]! + 1;
     await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttempts.toString()));
+        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
   }
 
   /// Method to restore all attempts by provided config.
   Future<void> restoreAllAttempts() async {
     currentAttempts = Map.from(timeoutsMap);
     await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttempts.toString()));
+        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
   }
 
-  /// Method to waste an attempt from the current attempts pool.
+  /// Method to waste an attempt from the current atte§mpts pool.
   ///
   /// Returns true there are more available attempts to test before falling into timeout.
   /// Returns false if no more attempts are available before timeout.
@@ -69,7 +72,7 @@ class AttemptsHandler {
     currentAttempts[currentAvailableDuration] =
         currentAttempts[currentAvailableDuration]! - 1;
     await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttempts.toString()));
+        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     final hasNextAttemptsBunch = currentAttempts.keys
         .any((duration) => duration > currentAvailableDuration);
     final amountOfAvailableAttemptsBeforeTimeout =
