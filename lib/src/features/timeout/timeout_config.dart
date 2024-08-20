@@ -11,6 +11,7 @@ class PinCodeTimeoutConfig {
     required this.onTimeoutStarted,
     VoidCallback? onMaxTimeoutsReached,
     required this.timeouts,
+    required this.isRefreshable,
   }) : _onMaxTimeoutsReached = onMaxTimeoutsReached;
 
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
@@ -20,6 +21,7 @@ class PinCodeTimeoutConfig {
     OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
+      isRefreshable: true,
       onTimeoutEnded: onTimeoutEnded,
       onTimeoutStarted: onTimeoutStarted,
       onMaxTimeoutsReached: null,
@@ -35,6 +37,7 @@ class PinCodeTimeoutConfig {
     OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
+      isRefreshable: false,
       onTimeoutEnded: onTimeoutEnded,
       onTimeoutStarted: onTimeoutStarted,
       onMaxTimeoutsReached: onMaxTimeoutsReached,
@@ -95,7 +98,7 @@ class PinCodeTimeoutConfig {
   final Map<int, int> timeouts;
 
   /// Returns true if timeouts are configured to be refreshable.
-  bool get isRefreshable => onMaxTimeoutsReached != null;
+  final bool isRefreshable;
 
   @override
   String toString() {
@@ -103,6 +106,7 @@ class PinCodeTimeoutConfig {
         'onTimeoutEnd: $onTimeoutEnded, '
         'onMaxTimeoutsReached: $onMaxTimeoutsReached, '
         'timeouts: $timeouts, '
+        'isRefreshable: $isRefreshable, '
         ')';
   }
 }
