@@ -19,11 +19,12 @@ class TimeoutRefresher {
   TimeoutRefresher({
     required SharedPreferences prefs,
     required this.onTimeoutEnded,
-    this.iterateInterval = _kDefaultIterateInterval,
+    int? iterateInterval ,
   }) : _prefs = prefs {
-    if (iterateInterval <= 0) {
+    _iterateInterval = iterateInterval ?? _kDefaultIterateInterval;
+    if (_iterateInterval <= 0) {
       throw const TimeoutConfigError('iterateInterval must be greater than 0');
-    } else if (iterateInterval > _kMaxIterateInterval) {
+    } else if (_iterateInterval > _kMaxIterateInterval) {
       throw const TimeoutConfigError(
           'iterateInterval is too big, max is $_kMaxIterateInterval seconds');
     }
@@ -40,7 +41,7 @@ class TimeoutRefresher {
   late final SharedPreferences _prefs;
 
   /// Interval between each iteration in seconds.
-  final int iterateInterval;
+  late final int _iterateInterval;
 
   /// Callback to be called when the timeout is over and refreshed.
   final VoidCallback? onTimeoutEnded;
@@ -51,7 +52,7 @@ class TimeoutRefresher {
   /// Method to start the timer iterating to make updates.
   void _startIterating() {
     _timer = Timer.periodic(
-      Duration(seconds: iterateInterval),
+      Duration(seconds: _iterateInterval),
       (_) async => _iterate(),
     );
   }
@@ -106,6 +107,13 @@ class TimeoutRefresher {
     final rawTimeout = _prefs.getString(_kRefreshTimeoutKey);
     if (rawTimeout == null) return null;
     return Timeout.fromMap(json.decode(rawTimeout));
+  }
+
+  /// Method to clear timeout.
+  Future<void> clearTimeout() async {
+    currentTimeoutToBeRefreshed = null;
+    _stopIterating();
+    await _prefs.remove(_kRefreshTimeoutKey);
   }
 
   /// Method to update timeouts in prefs. It is not necessary to call, but recommended.

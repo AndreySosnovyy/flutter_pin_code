@@ -6,29 +6,29 @@ class DI {
   // This configuration is used in example by default
   static final refreshableTimeoutConfig = PinCodeTimeoutConfig.refreshable(
     onTimeoutEnded: () {
-      print('Timeout has ended, you can test pin code now!');
+      showToast('Timeout has ended, you can test pin code now!');
     },
     onTimeoutStarted: (timeoutDuration) {
-      print('Timeout has started, you must waste $timeoutDuration '
+      showToast('Timeout has started, you must wait $timeoutDuration '
           'before it ends!');
     },
-    timeouts: {0: 3, 30: 2, 60: 1},
+    timeouts: {0: 3, 10: 2, 20: 1},
   );
 
   // You can try to change default configuration above with this one to test it
   static final notRefreshableTimeoutConfig =
       PinCodeTimeoutConfig.notRefreshable(
     onTimeoutEnded: () {
-      print('Timeout has ended, you can test pin code now!');
+      showToast('Timeout has ended, you can test pin code now!');
     },
     onTimeoutStarted: (timeoutDuration) {
-      print('Timeout has started, you must waste $timeoutDuration '
+      showToast('Timeout has started, you must wait $timeoutDuration '
           'before it ends!');
     },
-    timeouts: {0: 3, 30: 2, 60: 1},
+    timeouts: {0: 3, 10: 2, 20: 1},
     onMaxTimeoutsReached: () {
       // TODO(Sosnovyy): emulate logic and navigation
-      print('Signing the user out and performing navigation '
+      showToast('Signing the user out and performing navigation '
           'to the auth screen!');
     },
   );

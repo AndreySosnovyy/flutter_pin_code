@@ -12,6 +12,8 @@ class WasteAttemptResponse {
   ///
   /// 0 if no need to fall into timeout now and more attempts are available
   /// to waste before timeout.
+  ///
+  /// Null if timeouts are not refreshable and all wasted.
   final int? timeoutDurationInSeconds;
 
   /// Indicates if there are no more attempts available to waste in general.

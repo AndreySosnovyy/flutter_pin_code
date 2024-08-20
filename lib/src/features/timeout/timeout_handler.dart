@@ -11,6 +11,7 @@ class TimeoutHandler {
     required SharedPreferences prefs,
     required this.onTimeoutEnded,
     required this.onTimeoutStarted,
+    this.iterateInterval,
   }) : _prefs = prefs;
 
   final SharedPreferences _prefs;
@@ -24,11 +25,17 @@ class TimeoutHandler {
   /// Event loop to handle timeout refreshing.
   late final TimeoutRefresher _refresher;
 
+  /// Interval between timeout state check iterations in seconds.
+  ///
+  /// Default value is 30 seconds.
+  final int? iterateInterval;
+
   /// Method to initialize the timeout handler.
   Future<void> initialize() async {
     _refresher = TimeoutRefresher(
       prefs: _prefs,
       onTimeoutEnded: onTimeoutEnded,
+      iterateInterval: iterateInterval,
     );
     await _refresher.initialize();
   }
@@ -54,6 +61,9 @@ class TimeoutHandler {
     return _refresher.currentTimeoutToBeRefreshed!.expirationTimestamp
         .difference(DateTime.now());
   }
+
+  /// Method to clear timeout from prefs.
+  Future<void> clearTimeout() async => _refresher.clearTimeout();
 
   /// Method to dispose the timeout handler.
   Future<void> dispose() async {

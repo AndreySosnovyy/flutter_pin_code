@@ -14,10 +14,14 @@ class AttemptsHandler {
   AttemptsHandler({
     required SharedPreferences prefs,
     required this.timeoutsMap,
+    required this.isRefreshable,
   }) : _prefs = prefs;
 
   ///
   final SharedPreferences _prefs;
+
+  /// Type of timeout configuration.
+  final bool isRefreshable;
 
   /// Timeouts configuration from the general config.
   final Map<int, int> timeoutsMap;
@@ -87,7 +91,7 @@ class AttemptsHandler {
         currentAttempts[currentAvailableDuration]! - 1;
     await _prefs.setString(
         _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
-    final hasNextAttemptsBunch = currentAttempts.keys
+    final hasNextAttempts = currentAttempts.keys
         .any((duration) => duration > currentAvailableDuration);
     final amountOfAvailableAttemptsBeforeTimeout =
         currentAttempts[currentAvailableDuration]!;
@@ -95,19 +99,23 @@ class AttemptsHandler {
     if (amountOfAvailableAttemptsBeforeTimeout > 0) {
       timeout = 0;
     } else {
-      if (hasNextAttemptsBunch) {
+      if (hasNextAttempts) {
         timeout = currentAttempts.keys
             .where((duration) => duration > currentAvailableDuration)
             .reduce(math.min);
       } else {
-        timeout = null;
+        if (isRefreshable) {
+          timeout = currentAttempts.keys.last;
+        } else {
+          timeout = null;
+        }
       }
     }
     final response = WasteAttemptResponse(
       amountOfAvailableAttemptsBeforeTimeout:
           amountOfAvailableAttemptsBeforeTimeout,
       timeoutDurationInSeconds: timeout,
-      areAllAttemptsWasted: !hasNextAttemptsBunch,
+      areAllAttemptsWasted: !hasNextAttempts,
     );
     logger.d(
         'An attempt was wasted. $amountOfAvailableAttemptsBeforeTimeout left '
@@ -134,16 +142,21 @@ class AttemptsHandler {
   int? get _nextTimeoutDurationInSeconds {
     final targetDurationsForCurrent = currentAttempts.keys
         .where((duration) => currentAttempts[duration]! > 0);
-    if (targetDurationsForCurrent.isEmpty) return null;
     final currentAvailableDuration = targetDurationsForCurrent.reduce(math.min);
     final targetDurationsForNext = currentAttempts.entries.where(
         (entry) => entry.key > currentAvailableDuration && entry.value > 0);
-    if (targetDurationsForNext.isEmpty) return null;
+    if (targetDurationsForCurrent.isEmpty || targetDurationsForNext.isEmpty) {
+      if (isRefreshable) {
+        return currentAttempts.keys.last;
+      } else {
+        return null;
+      }
+    }
     return targetDurationsForNext.reduce((a, b) => a.key < b.key ? b : a).key;
   }
 
   /// Returns true if there are no more configured timeouts and the only way to
   /// test pin is to wait until same timeout ends and obtain one new attempt
   /// every time after.
-  bool get isInLoop => _nextTimeoutDurationInSeconds != null;
+  bool get isInLoop => _nextTimeoutDurationInSeconds == null;
 }

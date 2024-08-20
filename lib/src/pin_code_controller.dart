@@ -202,10 +202,12 @@ class PinCodeController {
       if (isTimeoutConfigured) {
         _attemptsHandler = AttemptsHandler(
           prefs: _prefs,
+          isRefreshable: _timeoutConfig!.isRefreshable,
           timeoutsMap: _timeoutConfig!.timeouts,
         );
         _timeoutHandler = TimeoutHandler(
           prefs: _prefs,
+          iterateInterval: 5,
           onTimeoutEnded: () {
             _timeoutConfig!.onTimeoutEnded?.call();
             if (_attemptsHandler!.isInLoop) _attemptsHandler!.restoreAttempt();
@@ -317,6 +319,8 @@ class PinCodeController {
     if (clearConfigs) {
       await _prefs.remove(_kPinCodeRequestAgainSeconds);
     }
+    await _timeoutHandler?.clearTimeout();
+    await _attemptsHandler?.restoreAllAttempts();
     logger.d('All pin related data were successfully cleared');
   }
 
@@ -358,7 +362,6 @@ class PinCodeController {
         return false;
       }
       if (wasteResponse.amountOfAvailableAttemptsBeforeTimeout == 0) {
-        // FIXME(Sosnovyy): Null check operator used on a null value
         _timeoutHandler!.startTimeout(
             durationInSeconds: wasteResponse.timeoutDurationInSeconds!);
       }
