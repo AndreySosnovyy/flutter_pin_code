@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_pin_code/src/exceptions/timeout_is_already_running_exception.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_refresher.dart';
+import 'package:flutter_pin_code/src/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Class to handle timeouts and its related information.
@@ -41,6 +42,7 @@ class TimeoutHandler {
     }
     onTimeoutStarted?.call(durationInSeconds);
     _refresher.setCurrentTimeout(durationInSeconds: durationInSeconds);
+    logger.d('Timeout for $durationInSeconds seconds was started');
   }
 
   /// Returns true if timeout is running.

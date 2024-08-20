@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/features/timeout/models/timeout_data_model.dart';
+import 'package:flutter_pin_code/src/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const int _kDefaultIterateInterval = 30;
@@ -11,6 +12,7 @@ const int _kMaxIterateInterval = 120;
 
 const String _kRefreshTimeoutKey = 'flutter_pin_code.timeout_to_be_refreshed';
 
+// TODO(Sosnovyy): refactor from periodic timer to a normal one
 /// Class is responsible for storing, refreshing timeouts and notifying
 /// TimeoutHandler about .
 class TimeoutRefresher {
@@ -63,6 +65,7 @@ class TimeoutRefresher {
       onTimeoutEnded?.call();
       await _writeCurrentTimeoutToDisk();
       _stopIterating();
+      logger.d('Timeout is over.');
     }
   }
 

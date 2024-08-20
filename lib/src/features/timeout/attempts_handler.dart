@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter_pin_code/src/exceptions/cant_return_timeout_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_waste_attempt_exception.dart';
 import 'package:flutter_pin_code/src/features/timeout/models/waste_attempt_response.dart';
+import 'package:flutter_pin_code/src/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kAttemptsPoolKey = 'flutter_pin_code.attempts_pool';
@@ -43,7 +44,7 @@ class AttemptsHandler {
     if (!currentAttempts.containsKey(duration)) {
       throw CantReturnTimeoutException(
         'Wrong timeout duration provided ($duration), '
-        'only ${currentAttempts.keys} are available',
+            'only ${currentAttempts.keys} are available',
       );
     }
     currentAttempts[duration] = currentAttempts[duration]! + 1;
@@ -58,6 +59,7 @@ class AttemptsHandler {
       ..addAll(Map.from(timeoutsMap));
     await _prefs.setString(
         _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
+    logger.d('All attempts were restored');
   }
 
   /// Method to waste an attempt from the current atte§mpts pool.
@@ -78,26 +80,28 @@ class AttemptsHandler {
     final hasNextAttemptsBunch = currentAttempts.keys
         .any((duration) => duration > currentAvailableDuration);
     final amountOfAvailableAttemptsBeforeTimeout =
-        currentAttempts[currentAvailableDuration]!;
+    currentAttempts[currentAvailableDuration]!;
     late final int? timeout;
     if (amountOfAvailableAttemptsBeforeTimeout > 0) {
       timeout = 0;
     } else {
       if (hasNextAttemptsBunch) {
-        timeout = currentAttempts[currentAttempts.keys
+        timeout = currentAttempts.keys
             .where((duration) => duration > currentAvailableDuration)
-            .reduce(math.min)];
+            .reduce(math.min);
       } else {
         timeout = null;
       }
     }
-
     final response = WasteAttemptResponse(
       amountOfAvailableAttemptsBeforeTimeout:
-          amountOfAvailableAttemptsBeforeTimeout,
+      amountOfAvailableAttemptsBeforeTimeout,
       timeoutDurationInSeconds: timeout,
       areAllAttemptsWasted: !hasNextAttemptsBunch,
     );
+    logger.d(
+        'An attempt was wasted. $amountOfAvailableAttemptsBeforeTimeout left '
+            'before $nextTimeoutDurationInSeconds seconds timeout.');
     return response;
   }
 
@@ -110,5 +114,20 @@ class AttemptsHandler {
         .where((duration) => currentAttempts[duration]! > 0)
         .reduce(math.min);
     return currentAttempts[currentAvailableDuration]!;
+  }
+
+  /// Returns the next timeout duration in seconds
+  ///
+  /// Returns null if there are no more timeouts after current attempts configured.
+  int? get nextTimeoutDurationInSeconds {
+    final currentAvailableDuration = currentAttempts.keys
+        .where((duration) => currentAttempts[duration]! > 0)
+        .reduce(math.min);
+    final targetDurations = currentAttempts.entries.where((entry) =>
+    entry.key > currentAvailableDuration && entry.value > 0);
+    if (targetDurations.isEmpty) return null;
+    return targetDurations
+        .reduce((a, b) => a.key < b.key ? b : a)
+        .key;
   }
 }

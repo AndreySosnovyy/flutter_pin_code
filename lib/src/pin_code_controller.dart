@@ -184,6 +184,7 @@ class PinCodeController {
       if (DateTime.now().difference(timestamp).inSeconds >=
           requestAgainConfig!.secondsBeforeRequestingAgain) {
         requestAgainConfig!.onRequestAgain!();
+        logger.d('Request again callback was called');
       }
     }
   }
@@ -320,7 +321,11 @@ class PinCodeController {
     if (clearConfigs) {
       await _prefs.remove(_kPinCodeRequestAgainSeconds);
     }
+    logger.d('All pin related data were successfully cleared');
   }
+
+  /// Returns whether timeout is currently running.
+  bool get isTimeoutRunning => _timeoutHandler?.isTimeoutRunning ?? false;
 
   /// Checks if provided pin matches the current set one.
   ///
@@ -377,6 +382,7 @@ class PinCodeController {
     _currentPin = pin;
     await _secureStorage.write(key: _storageKey, value: pin);
     await _prefs.setBool(_kIsPinCodeSetKey, true);
+    logger.d('Pin code was successfully set');
   }
 
   /// Sets biometrics type.
@@ -423,11 +429,13 @@ class PinCodeController {
         await _localAuthentication.getAvailableBiometrics();
     if (availableNativeTypes.contains(BiometricType.face)) {
       await _setBiometricsType(BiometricsType.face);
+      logger.d('Face ID was successfully set as biometrics type');
       return BiometricsType.face;
     } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
         availableNativeTypes.contains(BiometricType.strong) ||
         availableNativeTypes.contains(BiometricType.weak)) {
       await _setBiometricsType(BiometricsType.fingerprint);
+      logger.d('Fingerprint was successfully set as biometrics type');
       return BiometricsType.fingerprint;
     }
     return BiometricsType.none;
@@ -438,6 +446,7 @@ class PinCodeController {
     _currentBiometrics = BiometricsType.none;
     await _prefs.setString(
         _storageKey + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
+    logger.d('Biometrics was successfully disabled');
   }
 
   /// Requests biometrics from user to sign in by system dialog and without pin.
@@ -452,17 +461,15 @@ class PinCodeController {
     required String faceIdReason,
   }) async {
     _verifyInitialized();
-    final availableBiometrics =
-        await _localAuthentication.getAvailableBiometrics();
     final String reason;
-    if (availableBiometrics.contains(BiometricType.fingerprint)) {
+    if (_currentBiometrics == BiometricsType.fingerprint) {
       reason = fingerprintReason;
-    } else if (availableBiometrics.contains(BiometricType.face)) {
+    } else if (_currentBiometrics == BiometricsType.face) {
       reason = faceIdReason;
     } else {
       reason = ''; // This will throw an exception
     }
-    return await _localAuthentication.authenticate(
+    final result = await _localAuthentication.authenticate(
       localizedReason: reason,
       options: const AuthenticationOptions(
         useErrorDialogs: true,
@@ -470,12 +477,20 @@ class PinCodeController {
         biometricOnly: true,
       ),
     );
+    if (result) {
+      logger.d('Biometrics was successfully tested');
+      return true;
+    } else {
+      logger.d('Something went wrong during biometrics test');
+      return false;
+    }
   }
 
   /// Disposes pin code controller.
   Future<void> dispose() async {
     _verifyInitialized();
     await _timeoutHandler?.dispose();
+    logger.d('Pin code controller was disposed');
   }
 }
 

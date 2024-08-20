@@ -11,6 +11,7 @@ class PinCodeView extends StatefulWidget {
   State<PinCodeView> createState() => _PinCodeViewState();
 }
 
+// TODO(Sosnovyy): display timeout timer duration
 class _PinCodeViewState extends State<PinCodeView> {
   final pinCodeTextEditingController = TextEditingController();
   final pinCodeController = DI.pinCodeController;
@@ -62,7 +63,12 @@ class _PinCodeViewState extends State<PinCodeView> {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () async {
-                      if (!await pinCodeController.canTestPinCode()) return;
+                      if (pinCodeController.isTimeoutRunning) {
+                        return showToast('You must wait for timeout to end');
+                      }
+                      if (!await pinCodeController.canTestPinCode()) {
+                        return showToast('You can\'t test PIN CODE now');
+                      }
                       final isPinCodeCorrect = await pinCodeController
                           .testPinCode(pinCodeTextEditingController.text);
                       if (isPinCodeCorrect) {

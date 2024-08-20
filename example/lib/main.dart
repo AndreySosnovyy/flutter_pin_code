@@ -12,7 +12,7 @@ class DI {
       print('Notify user about timeout start if needed!');
     },
     timeouts: {0: 3, 30: 2, 60: 1},
-    timeoutRefreshRatio: 10,
+    timeoutRefreshRatio: 1,
   );
 
   // You can try to change default configuration above with this one to test it
