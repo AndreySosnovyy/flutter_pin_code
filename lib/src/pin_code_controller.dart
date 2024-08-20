@@ -206,7 +206,10 @@ class PinCodeController {
         );
         _timeoutHandler = TimeoutHandler(
           prefs: _prefs,
-          onTimeoutEnded: _timeoutConfig!.onTimeoutEnded,
+          onTimeoutEnded: () {
+            _timeoutConfig!.onTimeoutEnded?.call();
+            if (_attemptsHandler!.isInLoop) _attemptsHandler!.restoreAttempt();
+          },
           onTimeoutStarted: (durationInSeconds) => _timeoutConfig!
               .onTimeoutStarted
               ?.call(Duration(seconds: durationInSeconds)),

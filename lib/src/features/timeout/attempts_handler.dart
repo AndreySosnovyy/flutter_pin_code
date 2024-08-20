@@ -40,17 +40,26 @@ class AttemptsHandler {
     }
   }
 
-  /// Method to add an attempt back to the current attempts pool
-  Future<void> returnAttempt(int duration) async {
-    if (!currentAttempts.containsKey(duration)) {
-      throw CantReturnTimeoutException(
-        'Wrong timeout duration provided ($duration), '
-        'only ${currentAttempts.keys} are available',
-      );
+  /// Method to add an attempt back to the current attempts pool for provided duration.
+  ///
+  /// If duration not provided, the attempt for last duration will be returned.
+  Future<void> restoreAttempt({int? duration}) async {
+    if (duration == null) {
+      final targetDuration = currentAttempts.keys.reduce(math.max);
+      currentAttempts[targetDuration] = currentAttempts[targetDuration]! + 1;
+    } else {
+      if (!currentAttempts.containsKey(duration)) {
+        throw CantReturnTimeoutException(
+          'Wrong timeout duration provided ($duration), '
+          'only ${currentAttempts.keys} are available',
+        );
+      }
+      currentAttempts[duration] = currentAttempts[duration]! + 1;
+      await _prefs.setString(
+          _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     }
-    currentAttempts[duration] = currentAttempts[duration]! + 1;
-    await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
+    logger.d('One attempt was returned'
+        '${duration != null ? ' for $duration timeout' : ''}');
   }
 
   /// Method to restore all attempts by provided config.
@@ -119,7 +128,6 @@ class AttemptsHandler {
     return currentAttempts[targetDurations.reduce(math.min)]!;
   }
 
-  /// Used for debugging purposes only
   /// Returns the next timeout duration in seconds
   ///
   /// Returns null if there are no more timeouts after current attempts configured.
@@ -133,4 +141,9 @@ class AttemptsHandler {
     if (targetDurationsForNext.isEmpty) return null;
     return targetDurationsForNext.reduce((a, b) => a.key < b.key ? b : a).key;
   }
+
+  /// Returns true if there are no more configured timeouts and the only way to
+  /// test pin is to wait until same timeout ends and obtain one new attempt
+  /// every time after.
+  bool get isInLoop => _nextTimeoutDurationInSeconds != null;
 }

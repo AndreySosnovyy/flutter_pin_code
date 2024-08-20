@@ -14,7 +14,7 @@ const String _kRefreshTimeoutKey = 'flutter_pin_code.timeout_to_be_refreshed';
 
 // TODO(Sosnovyy): refactor from periodic timer to a normal one
 /// Class is responsible for storing, refreshing timeouts and notifying
-/// TimeoutHandler about .
+/// TimeoutHandler about timeout events.
 class TimeoutRefresher {
   TimeoutRefresher({
     required SharedPreferences prefs,
