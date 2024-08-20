@@ -17,6 +17,7 @@ import 'package:flutter_pin_code/src/features/request_again/request_again_config
 import 'package:flutter_pin_code/src/features/timeout/attempts_handler.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_handler.dart';
+import 'package:flutter_pin_code/src/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -340,6 +341,7 @@ class PinCodeController {
 
     _lastTestTimestamp = DateTime.now();
     if (pin == _currentPin) {
+      logger.d('Pin code was successfully tested');
       _attemptsHandler?.restoreAllAttempts();
       return true;
     }

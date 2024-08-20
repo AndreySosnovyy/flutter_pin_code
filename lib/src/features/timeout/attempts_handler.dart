@@ -33,8 +33,8 @@ class AttemptsHandler {
     if (rawPool == null) {
       currentAttempts = Map.from(timeoutsMap);
     } else {
-      currentAttempts = (json.decode(rawPool)).map<int, int>(
-          (k, v) => MapEntry(int.parse(k), int.parse(v)));
+      currentAttempts = (json.decode(rawPool))
+          .map<int, int>((k, v) => MapEntry(int.parse(k), int.parse(v)));
     }
   }
 
@@ -53,7 +53,9 @@ class AttemptsHandler {
 
   /// Method to restore all attempts by provided config.
   Future<void> restoreAllAttempts() async {
-    currentAttempts = Map.from(timeoutsMap);
+    currentAttempts
+      ..clear()
+      ..addAll(Map.from(timeoutsMap));
     await _prefs.setString(
         _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
   }
