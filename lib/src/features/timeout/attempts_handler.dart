@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kAttemptsPoolKey = 'flutter_pin_code.attempts_pool';
 
+// TODO(Sosnovyy): return one attempt after last timeout
 class AttemptsHandler {
   AttemptsHandler({
     required SharedPreferences prefs,
@@ -44,7 +45,7 @@ class AttemptsHandler {
     if (!currentAttempts.containsKey(duration)) {
       throw CantReturnTimeoutException(
         'Wrong timeout duration provided ($duration), '
-            'only ${currentAttempts.keys} are available',
+        'only ${currentAttempts.keys} are available',
       );
     }
     currentAttempts[duration] = currentAttempts[duration]! + 1;
@@ -80,7 +81,7 @@ class AttemptsHandler {
     final hasNextAttemptsBunch = currentAttempts.keys
         .any((duration) => duration > currentAvailableDuration);
     final amountOfAvailableAttemptsBeforeTimeout =
-    currentAttempts[currentAvailableDuration]!;
+        currentAttempts[currentAvailableDuration]!;
     late final int? timeout;
     if (amountOfAvailableAttemptsBeforeTimeout > 0) {
       timeout = 0;
@@ -95,13 +96,13 @@ class AttemptsHandler {
     }
     final response = WasteAttemptResponse(
       amountOfAvailableAttemptsBeforeTimeout:
-      amountOfAvailableAttemptsBeforeTimeout,
+          amountOfAvailableAttemptsBeforeTimeout,
       timeoutDurationInSeconds: timeout,
       areAllAttemptsWasted: !hasNextAttemptsBunch,
     );
     logger.d(
         'An attempt was wasted. $amountOfAvailableAttemptsBeforeTimeout left '
-            'before $nextTimeoutDurationInSeconds seconds timeout.');
+        'before $_nextTimeoutDurationInSeconds seconds timeout.');
     return response;
   }
 
@@ -109,25 +110,27 @@ class AttemptsHandler {
   bool get isAvailable => currentAttempts.values.any((amount) => amount > 0);
 
   /// Returns the amount of available attempts before timeout
+  ///
+  /// Returns zero if no timeouts available now but they are refreshable.
   int get attemptsAmountBeforeTimeout {
-    final currentAvailableDuration = currentAttempts.keys
-        .where((duration) => currentAttempts[duration]! > 0)
-        .reduce(math.min);
-    return currentAttempts[currentAvailableDuration]!;
+    final targetDurations = currentAttempts.keys
+        .where((duration) => currentAttempts[duration]! > 0);
+    if (targetDurations.isEmpty) return 0;
+    return currentAttempts[targetDurations.reduce(math.min)]!;
   }
 
+  /// Used for debugging purposes only
   /// Returns the next timeout duration in seconds
   ///
   /// Returns null if there are no more timeouts after current attempts configured.
-  int? get nextTimeoutDurationInSeconds {
-    final currentAvailableDuration = currentAttempts.keys
-        .where((duration) => currentAttempts[duration]! > 0)
-        .reduce(math.min);
-    final targetDurations = currentAttempts.entries.where((entry) =>
-    entry.key > currentAvailableDuration && entry.value > 0);
-    if (targetDurations.isEmpty) return null;
-    return targetDurations
-        .reduce((a, b) => a.key < b.key ? b : a)
-        .key;
+  int? get _nextTimeoutDurationInSeconds {
+    final targetDurationsForCurrent = currentAttempts.keys
+        .where((duration) => currentAttempts[duration]! > 0);
+    if (targetDurationsForCurrent.isEmpty) return null;
+    final currentAvailableDuration = targetDurationsForCurrent.reduce(math.min);
+    final targetDurationsForNext = currentAttempts.entries.where(
+        (entry) => entry.key > currentAvailableDuration && entry.value > 0);
+    if (targetDurationsForNext.isEmpty) return null;
+    return targetDurationsForNext.reduce((a, b) => a.key < b.key ? b : a).key;
   }
 }
