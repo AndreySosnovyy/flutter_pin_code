@@ -58,13 +58,6 @@ class PinCodeController {
         throw const TimeoutConfigError(
             'Max timeout is $kPinCodeMaxTimeout seconds');
       }
-      if (_timeoutConfig!.timeoutRefreshRatio != null) {
-        if (_timeoutConfig!.timeoutRefreshRatio! < 0 ||
-            _timeoutConfig!.timeoutRefreshRatio! > 100) {
-          throw const TimeoutConfigError(
-              'Variable "timeoutRefreshRatio" must be between 0 and 100 inclusive');
-        }
-      }
     }
     if (millisecondsBetweenTests < 0 || millisecondsBetweenTests > 3000) {
       throw const GeneralConfigError(

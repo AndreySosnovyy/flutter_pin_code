@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_provided.dart';
 
 const int kPinCodeMaxTimeout = 21600;
-const int kPinCodeMaxRefreshRatio = 100;
 
 typedef OnTimeoutStartedCallback = Function(Duration timeoutDuration);
 
@@ -12,13 +11,11 @@ class PinCodeTimeoutConfig {
     required this.onTimeoutStarted,
     VoidCallback? onMaxTimeoutsReached,
     required this.timeouts,
-    required this.timeoutRefreshRatio,
   }) : _onMaxTimeoutsReached = onMaxTimeoutsReached;
 
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
   factory PinCodeTimeoutConfig.refreshable({
     required Map<int, int> timeouts,
-    required int timeoutRefreshRatio,
     VoidCallback? onTimeoutEnded,
     OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
@@ -27,7 +24,6 @@ class PinCodeTimeoutConfig {
       onTimeoutStarted: onTimeoutStarted,
       onMaxTimeoutsReached: null,
       timeouts: timeouts,
-      timeoutRefreshRatio: timeoutRefreshRatio,
     );
   }
 
@@ -43,7 +39,6 @@ class PinCodeTimeoutConfig {
       onTimeoutStarted: onTimeoutStarted,
       onMaxTimeoutsReached: onMaxTimeoutsReached,
       timeouts: timeouts,
-      timeoutRefreshRatio: null,
     );
   }
 
@@ -82,8 +77,12 @@ class PinCodeTimeoutConfig {
 
   /// Map containing number of tries before every timeout
   /// where key is number of seconds and value is number of tries.
+  ///
   /// If all timeouts are over and they are not refreshable,
   /// then onMaxTimeoutsReached will be called.
+  ///
+  /// If timeouts are refreshable and the last configured timeout is over, user
+  /// will get one attempt at a time. This logic will repeat infinitely!
   ///
   /// Max value is 21600 ([kPinCodeMaxTimeout]) seconds.
   ///
@@ -95,22 +94,8 @@ class PinCodeTimeoutConfig {
   /// }
   final Map<int, int> timeouts;
 
-  /// Ratio applied to number of seconds for each timeout to refresh it.
-  /// Max value is 100 ([kPinCodeMaxRefreshRatio]).
-  ///
-  /// Initial tries will be updated together after closest timeout to them.
-  ///
-  /// If null or 0 - timeouts are not refreshable and
-  /// onMaxTimeoutsReached will be called when they are over.
-  ///
-  /// Example:
-  /// If timeoutRefreshRatio is 10 and timeouts map is {0: 3, 60: 2} than
-  /// after wasting initial tries and both tries after 60 seconds the next
-  /// available try will refresh after 600 seconds.
-  final int? timeoutRefreshRatio;
-
   /// Returns true if timeouts are configured to be refreshable.
-  bool get isRefreshable => timeoutRefreshRatio != null;
+  bool get isRefreshable => onMaxTimeoutsReached != null;
 
   @override
   String toString() {
@@ -118,7 +103,6 @@ class PinCodeTimeoutConfig {
         'onTimeoutEnd: $onTimeoutEnded, '
         'onMaxTimeoutsReached: $onMaxTimeoutsReached, '
         'timeouts: $timeouts, '
-        'timeoutRefreshRatio: $timeoutRefreshRatio'
         ')';
   }
 }
