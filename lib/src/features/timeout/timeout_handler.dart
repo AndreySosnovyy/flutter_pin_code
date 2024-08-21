@@ -25,9 +25,7 @@ class TimeoutHandler {
   /// Event loop to handle timeout refreshing.
   late final TimeoutRefresher _refresher;
 
-  /// Interval between timeout state check iterations in seconds.
-  ///
-  /// Default value is 30 seconds.
+  /// {@macro iterateInterval}
   final int? iterateInterval;
 
   /// Method to initialize the timeout handler.

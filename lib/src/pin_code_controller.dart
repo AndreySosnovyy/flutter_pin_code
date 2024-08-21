@@ -35,9 +35,8 @@ class PinCodeController {
     String? storageKey,
     this.millisecondsBetweenTests = 0,
     PinCodeRequestAgainConfig? requestAgainConfig,
-    PinCodeTimeoutConfig? timeoutConfig,
+    this.timeoutConfig,
   })  : _storageKey = storageKey ?? _kDefaultPinCodeKey,
-        _timeoutConfig = timeoutConfig,
         _requestAgainConfig = requestAgainConfig {
     if (requestAgainConfig != null) {
       if (requestAgainConfig.secondsBeforeRequestingAgain < 0) {
@@ -46,16 +45,16 @@ class PinCodeController {
       }
     }
     if (isTimeoutConfigured) {
-      if (_timeoutConfig!.timeouts.isEmpty) {
+      if (timeoutConfig!.timeouts.isEmpty) {
         throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
       }
-      if (_timeoutConfig!.timeouts.keys.reduce(math.min) < 0) {
+      if (timeoutConfig!.timeouts.keys.reduce(math.min) < 0) {
         throw const TimeoutConfigError('Timeout cannot be negative');
       }
-      if (_timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
+      if (timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
         throw const TimeoutConfigError('Number of tries cannot be negative');
       }
-      if (_timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
+      if (timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
         throw const TimeoutConfigError(
             'Max timeout is $kPinCodeMaxTimeout seconds');
       }
@@ -84,13 +83,16 @@ class PinCodeController {
   /// Number of tries is unlimited if disabled.
   ///
   /// Disabled if null.
-  PinCodeTimeoutConfig? _timeoutConfig;
+  PinCodeTimeoutConfig? timeoutConfig;
 
   /// Attempts handler.
   late AttemptsHandler? _attemptsHandler;
 
   /// Timeout handler.
   late TimeoutHandler? _timeoutHandler;
+
+  /// {@macro iterateInterval}
+  final int? iterateInterval;
 
   /// Number of milliseconds between tests.
   ///
@@ -125,7 +127,7 @@ class PinCodeController {
   }
 
   /// Returns true if Timeout config is provided
-  bool get isTimeoutConfigured => _timeoutConfig != null;
+  bool get isTimeoutConfigured => timeoutConfig != null;
 
   /// Sets request again config and writes it in prefs.
   ///
@@ -137,23 +139,6 @@ class PinCodeController {
     } else {
       _prefs.setInt(
           _kPinCodeRequestAgainSeconds, config.secondsBeforeRequestingAgain);
-    }
-  }
-
-  /// Returns current timeout config.
-  PinCodeTimeoutConfig? get timeoutConfig {
-    return _timeoutConfig;
-  }
-
-  /// Sets timeout config and writes it in prefs.
-  ///
-  /// Provide null to remove config.
-  set timeoutConfig(PinCodeTimeoutConfig? config) {
-    _timeoutConfig = config;
-    if (config == null) {
-      _prefs.remove(_kPinCodeRequestAgainSeconds);
-    } else {
-      // TODO(Sosnovyy): write necessary data from config to prefs
     }
   }
 
@@ -203,17 +188,17 @@ class PinCodeController {
       if (isTimeoutConfigured) {
         _attemptsHandler = AttemptsHandler(
           prefs: _prefs,
-          isRefreshable: _timeoutConfig!.isRefreshable,
-          timeoutsMap: _timeoutConfig!.timeouts,
+          isRefreshable: timeoutConfig!.isRefreshable,
+          timeoutsMap: timeoutConfig!.timeouts,
         );
         _timeoutHandler = TimeoutHandler(
           prefs: _prefs,
-          iterateInterval: 5,
+          iterateInterval: iterateInterval,
           onTimeoutEnded: () {
-            _timeoutConfig!.onTimeoutEnded?.call();
+            timeoutConfig!.onTimeoutEnded?.call();
             if (_attemptsHandler!.isInLoop) _attemptsHandler!.restoreAttempt();
           },
-          onTimeoutStarted: (durationInSeconds) => _timeoutConfig!
+          onTimeoutStarted: (durationInSeconds) => timeoutConfig!
               .onTimeoutStarted
               ?.call(Duration(seconds: durationInSeconds)),
         );
@@ -354,13 +339,13 @@ class PinCodeController {
     if (isTimeoutConfigured) {
       final wasteResponse = await _attemptsHandler!.wasteAttempt();
       if (wasteResponse.areAllAttemptsWasted &&
-          !_timeoutConfig!.isRefreshable) {
-        if (_timeoutConfig!.onMaxTimeoutsReached == null) {
+          !timeoutConfig!.isRefreshable) {
+        if (timeoutConfig!.onMaxTimeoutsReached == null) {
           throw const NoOnMaxTimeoutsReachedCallbackProvided(
               'No callback provided, but it must be already called');
         }
         await clear();
-        _timeoutConfig!.onMaxTimeoutsReached!();
+        timeoutConfig!.onMaxTimeoutsReached!();
         return false;
       }
       if (wasteResponse.amountOfAvailableAttemptsBeforeTimeout == 0) {

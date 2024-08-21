@@ -25,8 +25,7 @@ class DI {
       showToast('Timeout has started, you must wait $timeoutDuration '
           'before it ends!');
     },
-    // timeouts: {0: 3, 10: 2, 20: 1},
-    timeouts: {0: 1},
+    timeouts: {0: 3, 10: 2, 20: 1},
     onMaxTimeoutsReached: () {
       showToast('Signing the user out and performing navigation '
           'to the auth screen!');
@@ -35,8 +34,7 @@ class DI {
 
   // Place the controller in your DI or anywhere you think is most appropriate.
   static final pinCodeController = PinCodeController(
-    // timeoutConfig: refreshableTimeoutConfig,
-    timeoutConfig: DI.notRefreshableTimeoutConfig,
+    timeoutConfig: refreshableTimeoutConfig,
   );
 }
 

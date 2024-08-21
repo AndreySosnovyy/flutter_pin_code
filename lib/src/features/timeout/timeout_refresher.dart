@@ -40,7 +40,9 @@ class TimeoutRefresher {
 
   late final SharedPreferences _prefs;
 
-  /// Interval between each iteration in seconds.
+  /// {@template iterateInterval}
+  /// Interval between timeout state check iterations in seconds.
+  /// {@endtemplate}
   late final int _iterateInterval;
 
   /// Callback to be called when the timeout is over and refreshed.
