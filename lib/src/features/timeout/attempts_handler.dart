@@ -34,6 +34,7 @@ class AttemptsHandler {
   /// Method to initialize the attempts handler.
   /// This method must be called before any other method in this class.
   Future<void> initialize() async {
+    // TODO(Sosnovyy): solve problem with outdated config in prefs overrides new one
     final rawPool = _prefs.getString(_kAttemptsPoolKey);
     if (rawPool == null) {
       currentAttempts = Map.from(timeoutsMap);
@@ -75,7 +76,7 @@ class AttemptsHandler {
     logger.d('All attempts were restored');
   }
 
-  /// Method to waste an attempt from the current atte§mpts pool.
+  /// Method to waste an attempt from the current attempts pool.
   ///
   /// Returns true there are more available attempts to test before falling into timeout.
   /// Returns false if no more attempts are available before timeout.
@@ -153,6 +154,5 @@ class AttemptsHandler {
   /// Returns true if there are no more configured timeouts and all available
   /// attempts are wasted.
   bool get isInLoop =>
-      _nextTimeoutDurationInSeconds == null &&
-      !currentAttempts.values.any((duration) => duration > 0);
+      isRefreshable && !currentAttempts.values.any((duration) => duration > 0);
 }
