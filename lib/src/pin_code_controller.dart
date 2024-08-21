@@ -29,6 +29,7 @@ const String _kPinCodeRequestAgainSeconds =
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
+// TODO(Sosnovyy): maybe add separate method for forget pin user flow to make it clearer for developer
 class PinCodeController {
   PinCodeController({
     String? storageKey,
