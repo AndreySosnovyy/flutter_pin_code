@@ -29,7 +29,6 @@ const String _kPinCodeRequestAgainSeconds =
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): check if you can update timeout config after app was installed and used
 class PinCodeController {
   PinCodeController({
     String? storageKey,

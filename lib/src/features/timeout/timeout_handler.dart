@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter_pin_code/src/errors/wrong_timeout_duration_error.dart';
 import 'package:flutter_pin_code/src/exceptions/timeout_is_already_running_exception.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_refresher.dart';
 import 'package:flutter_pin_code/src/logger.dart';
@@ -40,6 +41,9 @@ class TimeoutHandler {
 
   /// Method to start timeout when all attempts are wasted.
   void startTimeout({required int durationInSeconds}) {
+    if (durationInSeconds == 0) {
+      throw const WrongTimeoutDurationError('Duration must be greater than 0');
+    }
     if (_refresher.currentTimeoutToBeRefreshed != null) {
       throw const TimeoutIsAlreadyRunningException(
           'Another timeout is already running. '
