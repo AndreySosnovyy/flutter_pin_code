@@ -12,8 +12,7 @@ class DI {
       showToast('Timeout has started, you must wait $timeoutDuration '
           'before it ends!');
     },
-    // timeouts: {0: 3, 10: 2, 20: 1},
-    timeouts: {0: 1, 5: 1},
+    timeouts: {0: 3, 10: 2, 20: 1},
   );
 
   // You can try to change default configuration above with this one to test it
