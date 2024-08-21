@@ -86,6 +86,7 @@ class AttemptsHandler {
     final currentAvailableDuration = currentAttempts.keys
         .where((duration) => currentAttempts[duration]! > 0)
         .reduce(math.min);
+    final nextTimeoutDurationForLog = _nextTimeoutDurationInSeconds;
     currentAttempts[currentAvailableDuration] =
         currentAttempts[currentAvailableDuration]! - 1;
     await _prefs.setString(
@@ -118,7 +119,7 @@ class AttemptsHandler {
     );
     logger.d(
         'An attempt was wasted. $amountOfAvailableAttemptsBeforeTimeout left '
-        'before $_nextTimeoutDurationInSeconds seconds timeout.');
+        'before $nextTimeoutDurationForLog seconds timeout.');
     return response;
   }
 
@@ -146,7 +147,7 @@ class AttemptsHandler {
     if ([0, 1].contains(targetDurations.length)) {
       return isRefreshable ? currentAttempts.keys.reduce(math.max) : null;
     }
-    return targetDurations.skip(1).first;
+    return targetDurations.toList()[1];
   }
 
   /// Returns true if there are no more configured timeouts and all available
