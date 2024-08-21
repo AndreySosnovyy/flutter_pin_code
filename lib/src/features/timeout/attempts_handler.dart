@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kAttemptsPoolKey = 'flutter_pin_code.attempts_pool';
 
-// TODO(Sosnovyy): return one attempt after last timeout
 class AttemptsHandler {
   AttemptsHandler({
     required SharedPreferences prefs,
@@ -141,20 +140,18 @@ class AttemptsHandler {
   /// Returns null if there are no more timeouts after current attempts
   /// configured for non refreshable timeouts.
   int? get _nextTimeoutDurationInSeconds {
-    final targetDurationsForCurrent = currentAttempts.keys
-        .where((duration) => currentAttempts[duration]! > 0)..toList().sort();
-    if (targetDurationsForCurrent.isEmpty) {
+    final targetDurations = currentAttempts.keys
+        .where((duration) => currentAttempts[duration]! > 0)
+      ..toList().sort();
+    if ([0, 1].contains(targetDurations.length)) {
       return isRefreshable ? currentAttempts.keys.reduce(math.max) : null;
     }
-    final currentAvailableDuration = targetDurationsForCurrent.first;
-    if (targetDurationsForCurrent.length == 1) {
-      return isRefreshable ? currentAttempts.keys.reduce(math.max) : null;
-    }
-    return targetDurationsForCurrent.skip(1).first;
+    return targetDurations.skip(1).first;
   }
 
-  /// Returns true if there are no more configured timeouts and the only way to
-  /// test pin is to wait until same timeout ends and obtain one new attempt
-  /// every time after.
-  bool get isInLoop => _nextTimeoutDurationInSeconds == null;
+  /// Returns true if there are no more configured timeouts and all available
+  /// attempts are wasted.
+  bool get isInLoop =>
+      _nextTimeoutDurationInSeconds == null &&
+      !currentAttempts.values.any((duration) => duration > 0);
 }

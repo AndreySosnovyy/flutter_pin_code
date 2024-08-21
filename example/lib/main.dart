@@ -25,9 +25,9 @@ class DI {
       showToast('Timeout has started, you must wait $timeoutDuration '
           'before it ends!');
     },
-    timeouts: {0: 3, 10: 2, 20: 1},
+    // timeouts: {0: 3, 10: 2, 20: 1},
+    timeouts: {0: 1},
     onMaxTimeoutsReached: () {
-      // TODO(Sosnovyy): emulate logic and navigation
       showToast('Signing the user out and performing navigation '
           'to the auth screen!');
     },

@@ -49,7 +49,7 @@ class TimeoutHandler {
     }
     onTimeoutStarted?.call(durationInSeconds);
     _refresher.setCurrentTimeout(durationInSeconds: durationInSeconds);
-    logger.d('Timeout for $durationInSeconds seconds was started');
+    logger.d('Timeout for $durationInSeconds seconds has started.');
   }
 
   /// Returns true if timeout is running.

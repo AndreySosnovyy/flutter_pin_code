@@ -21,7 +21,7 @@ class _PinCodeViewState extends State<PinCodeView> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => SettingsView(
-          setPinViewState: setStateFromSettings,
+          setPinViewState: updateView,
         ),
       ),
     );
@@ -34,10 +34,18 @@ class _PinCodeViewState extends State<PinCodeView> {
       if (pinCodeController.isPinCodeSet) return;
       if (!context.mounted) return;
       navigateToSettings();
+
+      // You can update onMaxTimeoutsReached callback from anywhere!
+      DI.pinCodeController.timeoutConfig?.onMaxTimeoutsReached = () {
+        showToast('Signing the user out and performing navigation '
+            'to the auth screen!');
+        updateView();
+        navigateToSettings();
+      };
     });
   }
 
-  void setStateFromSettings() {
+  void updateView() {
     if (!context.mounted) return;
     pinCodeTextEditingController.clear();
     setState(() {});
@@ -92,7 +100,8 @@ class _PinCodeViewState extends State<PinCodeView> {
                           faceIdReason: 'faceIdReason',
                         );
                         if (result) {
-                          showToast('Successfully authenticated with biometrics');
+                          showToast(
+                              'Successfully authenticated with biometrics');
                           navigateToSettings();
                         } else {
                           showToast('Failed to authenticate with biometrics');
