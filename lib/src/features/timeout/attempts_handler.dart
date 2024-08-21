@@ -58,9 +58,9 @@ class AttemptsHandler {
         );
       }
       currentAttempts[duration] = currentAttempts[duration]! + 1;
-      await _prefs.setString(
-          _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     }
+    await _prefs.setString(
+        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     logger.d('One attempt was returned'
         '${duration != null ? ' for $duration timeout' : ''}');
   }

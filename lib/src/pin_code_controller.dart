@@ -54,6 +54,17 @@ class PinCodeController {
       if (timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
         throw const TimeoutConfigError('Number of tries cannot be negative');
       }
+      if (!timeoutConfig!.timeouts.keys.contains(0)) {
+        throw const TimeoutConfigError('First timeout must be 0');
+      }
+      if (timeoutConfig!.timeouts.length < 2) {
+        throw const TimeoutConfigError(
+            'Number of entries in timeout configuration must be at least 2');
+      }
+      if (timeoutConfig!.timeouts.length !=
+          timeoutConfig!.timeouts.keys.toSet().length) {
+        throw const TimeoutConfigError('Timeouts must be unique');
+      }
       if (timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
         throw const TimeoutConfigError(
             'Max timeout is $kPinCodeMaxTimeout seconds');
@@ -338,8 +349,7 @@ class PinCodeController {
     }
     if (isTimeoutConfigured) {
       final wasteResponse = await _attemptsHandler!.wasteAttempt();
-      if (wasteResponse.areAllAttemptsWasted &&
-          !timeoutConfig!.isRefreshable) {
+      if (wasteResponse.areAllAttemptsWasted && !timeoutConfig!.isRefreshable) {
         if (timeoutConfig!.onMaxTimeoutsReached == null) {
           throw const NoOnMaxTimeoutsReachedCallbackProvided(
               'No callback provided, but it must be already called');

@@ -95,9 +95,6 @@ class PinCodeTimeoutConfig {
   /// timeouts in direct order. The important factor is timeout duration:
   /// shorter timeout can not be used after a longer one. It will always go
   /// one by one depending on current timeout duration starting from 0.
-  // TODO(Sosnovyy): add first zero validation
-  // TODO(Sosnovyy): add map length validation (2 entries at least)
-  // TODO(Sosnovyy): add duplicates validation
   ///
   /// Example:
   /// {
