@@ -89,6 +89,14 @@ class PinCodeTimeoutConfig {
   ///
   /// Max value is 21600 ([kPinCodeMaxTimeout]) seconds.
   ///
+  /// The first timeout duration is always 0!
+  ///
+  /// The order is not important but it's easier to understand if you put
+  /// timeouts in direct order. The important factor is timeout duration:
+  /// shorter timeout can not be used after a longer one. It will always go
+  /// one by one depending on current timeout duration starting from 0.
+  // TODO(Sosnovyy): add first zero validation
+  ///
   /// Example:
   /// {
   ///   0: 3, // initially you have 3 tries before falling into 60 seconds timeout

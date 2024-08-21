@@ -138,21 +138,19 @@ class AttemptsHandler {
 
   /// Returns the next timeout duration in seconds
   ///
-  /// Returns null if there are no more timeouts after current attempts configured.
+  /// Returns null if there are no more timeouts after current attempts
+  /// configured for non refreshable timeouts.
   int? get _nextTimeoutDurationInSeconds {
     final targetDurationsForCurrent = currentAttempts.keys
-        .where((duration) => currentAttempts[duration]! > 0);
-    final currentAvailableDuration = targetDurationsForCurrent.reduce(math.min);
-    final targetDurationsForNext = currentAttempts.entries.where(
-        (entry) => entry.key > currentAvailableDuration && entry.value > 0);
-    if (targetDurationsForCurrent.isEmpty || targetDurationsForNext.isEmpty) {
-      if (isRefreshable) {
-        return currentAttempts.keys.last;
-      } else {
-        return null;
-      }
+        .where((duration) => currentAttempts[duration]! > 0)..toList().sort();
+    if (targetDurationsForCurrent.isEmpty) {
+      return isRefreshable ? currentAttempts.keys.reduce(math.max) : null;
     }
-    return targetDurationsForNext.reduce((a, b) => a.key < b.key ? b : a).key;
+    final currentAvailableDuration = targetDurationsForCurrent.first;
+    if (targetDurationsForCurrent.length == 1) {
+      return isRefreshable ? currentAttempts.keys.reduce(math.max) : null;
+    }
+    return targetDurationsForCurrent.skip(1).first;
   }
 
   /// Returns true if there are no more configured timeouts and the only way to

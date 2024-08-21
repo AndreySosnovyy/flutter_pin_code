@@ -35,7 +35,8 @@ class DI {
 
   // Place the controller in your DI or anywhere you think is most appropriate.
   static final pinCodeController = PinCodeController(
-    timeoutConfig: refreshableTimeoutConfig,
+    // timeoutConfig: refreshableTimeoutConfig,
+    timeoutConfig: DI.notRefreshableTimeoutConfig,
   );
 }
 
