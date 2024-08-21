@@ -36,6 +36,7 @@ class PinCodeController {
     this.millisecondsBetweenTests = 0,
     PinCodeRequestAgainConfig? requestAgainConfig,
     this.timeoutConfig,
+    this.iterateInterval,
   })  : _storageKey = storageKey ?? _kDefaultPinCodeKey,
         _requestAgainConfig = requestAgainConfig {
     if (requestAgainConfig != null) {
