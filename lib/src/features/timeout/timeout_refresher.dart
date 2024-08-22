@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
-import 'package:flutter_pin_code/src/features/timeout/models/timeout_data_model.dart';
 import 'package:flutter_pin_code/src/features/logging/logger.dart';
+import 'package:flutter_pin_code/src/features/timeout/models/timeout_data_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const int _kDefaultIterateInterval = 30;
@@ -19,7 +19,7 @@ class TimeoutRefresher {
   TimeoutRefresher({
     required SharedPreferences prefs,
     required this.onTimeoutEnded,
-    int? iterateInterval ,
+    int? iterateInterval,
   }) : _prefs = prefs {
     _iterateInterval = iterateInterval ?? _kDefaultIterateInterval;
     if (_iterateInterval <= 0) {
@@ -99,9 +99,12 @@ class TimeoutRefresher {
 
   /// Method to write current timeout to prefs.
   Future<void> _writeCurrentTimeoutToDisk() async {
-    if (currentTimeoutToBeRefreshed == null) return;
-    await _prefs.setString(_kRefreshTimeoutKey,
-        json.encode(currentTimeoutToBeRefreshed!.toMap()));
+    if (currentTimeoutToBeRefreshed == null) {
+      await _prefs.remove(_kRefreshTimeoutKey);
+    } else {
+      await _prefs.setString(_kRefreshTimeoutKey,
+          json.encode(currentTimeoutToBeRefreshed!.toMap()));
+    }
   }
 
   /// Method to fetch current timeout from prefs.

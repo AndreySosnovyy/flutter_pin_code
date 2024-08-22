@@ -3,7 +3,6 @@ import 'package:flutter_pin_code/src/errors/invalid_skip_config_error.dart';
 const String _kDurationInMillisecondsMapKey = 'durationInMilliseconds';
 const String _kForcedForRequestAgainMapKey = 'forcedForRequestAgain';
 
-// TODO(Sosnovyy): implement skips amount limit
 /// Configuration file for Skip Pin feature.
 /// This feature gives the ability to avoid entering pin code for some time
 /// after user has entered it before.

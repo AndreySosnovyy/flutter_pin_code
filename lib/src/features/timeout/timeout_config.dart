@@ -25,7 +25,7 @@ class PinCodeTimeoutConfig {
     if (timeouts.values.reduce(math.min) < 0) {
       throw const TimeoutConfigError('Number of tries cannot be negative');
     }
-    if (timeouts.keys.contains(0)) {
+    if (!timeouts.keys.contains(0)) {
       throw const TimeoutConfigError('First timeout must be 0');
     }
     if (timeouts.length < 2) {
