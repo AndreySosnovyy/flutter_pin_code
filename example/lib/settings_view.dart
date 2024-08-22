@@ -136,14 +136,13 @@ class _SettingsViewState extends State<SettingsView> {
                                 requestAgainType = type;
                                 setState(() {});
                                 widget.setPinViewState();
-                                final newConfig = PinCodeRequestAgainConfig(
-                                  secondsBeforeRequestingAgain: type.seconds!,
-                                  onRequestAgain: requestAgainCallback,
-                                );
                                 await pinCodeController.setRequestAgainConfig(
                                     type == RequestAgainType.disabled
                                         ? null
-                                        : newConfig);
+                                        : PinCodeRequestAgainConfig(
+                                      secondsBeforeRequestingAgain: type.seconds!,
+                                      onRequestAgain: requestAgainCallback,
+                                    ));
                                 showToast(
                                     'Selected ${type.title} option for Request Again');
                               },
