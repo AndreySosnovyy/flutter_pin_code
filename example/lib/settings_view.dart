@@ -119,21 +119,20 @@ class _SettingsViewState extends State<SettingsView> {
                         children: [
                           for (final type in RequestAgainType.values)
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 Navigator.of(context).pop();
                                 requestAgainType = type;
                                 setState(() {});
                                 showToast(
                                     'Selected ${type.title} option for Request Again');
-                                if (type == RequestAgainType.disabled) {
-                                  pinCodeController.requestAgainConfig = null;
-                                } else {
-                                  pinCodeController.requestAgainConfig =
-                                      pinCodeController.requestAgainConfig!
-                                          .copyWith(
-                                    secondsBeforeRequestingAgain: type.seconds!,
-                                  );
-                                }
+                                await pinCodeController.setRequestAgainConfig(
+                                    type == RequestAgainType.disabled
+                                        ? null
+                                        : pinCodeController.requestAgainConfig!
+                                            .copyWith(
+                                            secondsBeforeRequestingAgain:
+                                                type.seconds!,
+                                          ));
                               },
                               child: Text(type.title),
                             ),
@@ -166,6 +165,25 @@ class _SettingsViewState extends State<SettingsView> {
               },
               child: Text(
                   'Disable PIN CODE${pinCodeController.isBiometricsSet ? ' and biometrics' : ''}'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                if (!pinCodeController.isPinCodeSet) {
+                  return showToast('PIN CODE must be set first');
+                }
+                await pinCodeController.setSkipPinCodeConfig(
+                    pinCodeController.skipPinCodeConfig == null
+                        ? SkipPinCodeConfig(
+                            duration: const Duration(minutes: 1),
+                            forcedForRequestAgain: false,
+                          )
+                        : null);
+                setState(() {});
+                widget.setPinViewState();
+              },
+              child: Text(
+                  '${pinCodeController.skipPinCodeConfig == null ? 'Enable' : 'Disable'} 1 min skip time'),
             ),
           ],
         ),

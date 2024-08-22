@@ -141,7 +141,7 @@ class PinCodeController {
   /// Sets request again config and writes it in prefs.
   ///
   /// Provide null to remove config.
-  set requestAgainConfig(PinCodeRequestAgainConfig? config) {
+  Future<void> setRequestAgainConfig(PinCodeRequestAgainConfig? config) async {
     _requestAgainConfig = config;
     if (config == null) {
       _prefs.remove(_kPinCodeRequestAgainSecondsKey);
@@ -157,7 +157,7 @@ class PinCodeController {
   /// Sets skip pin config and writes it in prefs.
   ///
   /// Provide null to remove config.
-  set skipPinCodeConfig(SkipPinCodeConfig? config) {
+  Future<void> setSkipPinCodeConfig(SkipPinCodeConfig? config) async {
     _skipPinCodeConfig = config;
     if (config == null) {
       _prefs.remove(_kSkipPinConfigKey);
@@ -250,9 +250,9 @@ class PinCodeController {
       } else {
         final secondsFromPrefs = _prefs.getInt(_kPinCodeRequestAgainSecondsKey);
         if (secondsFromPrefs != null) {
-          requestAgainConfig = PinCodeRequestAgainConfig(
+          await setRequestAgainConfig(PinCodeRequestAgainConfig(
             secondsBeforeRequestingAgain: secondsFromPrefs,
-          );
+          ));
         }
       }
 
