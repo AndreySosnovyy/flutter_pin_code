@@ -3,11 +3,12 @@ import 'dart:math' as math;
 
 import 'package:flutter_pin_code/src/exceptions/cant_return_timeout_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_waste_attempt_exception.dart';
-import 'package:flutter_pin_code/src/features/timeout/models/waste_attempt_response.dart';
 import 'package:flutter_pin_code/src/features/logging/logger.dart';
+import 'package:flutter_pin_code/src/features/timeout/models/waste_attempt_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kAttemptsPoolKey = 'flutter_pin_code.attempts_pool';
+const String _kTimeoutsMapHash = 'flutter_pin_code.timeouts_map_hash';
 
 class AttemptsHandler {
   AttemptsHandler({
@@ -34,9 +35,14 @@ class AttemptsHandler {
   /// Method to initialize the attempts handler.
   /// This method must be called before any other method in this class.
   Future<void> initialize() async {
-    // TODO(Sosnovyy): solve problem with outdated config in prefs overrides new one
+    final timeoutsMapHash = _prefs.getString(_kTimeoutsMapHash);
+    if (timeoutsMapHash == null ||
+        timeoutsMapHash != timeoutsMap.hashCode.toString()) {
+      await _prefs.setString(
+          _kTimeoutsMapHash, timeoutsMap.hashCode.toString());
+    }
     final rawPool = _prefs.getString(_kAttemptsPoolKey);
-    if (rawPool == null) {
+    if (rawPool == null || timeoutsMapHash != timeoutsMap.hashCode.toString()) {
       currentAttempts = Map.from(timeoutsMap);
     } else {
       currentAttempts = (json.decode(rawPool))
