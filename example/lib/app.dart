@@ -20,20 +20,6 @@ class _PinCodeAppState extends State<PinCodeApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (DI.pinCodeController.requestAgainConfig == null) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await DI.pinCodeController.setRequestAgainConfig(
-          DI.pinCodeController.requestAgainConfig!.copyWith(onRequestAgain: () {
-        final navigator = navigatorKey.currentState!;
-        if (!navigator.canPop()) return;
-        navigator
-          ..popUntil((route) => route.isFirst)
-          ..pushReplacement(MaterialPageRoute(
-            builder: (context) => const PinCodeView(),
-          ));
-        showToast('Requesting again called');
-      }));
-    });
   }
 
   @override

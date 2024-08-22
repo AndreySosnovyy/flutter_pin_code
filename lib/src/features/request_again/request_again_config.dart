@@ -13,7 +13,7 @@ class PinCodeRequestAgainConfig {
 
   /// Number of seconds needed to pass before requesting the pin code another time
   ///
-  /// Null for disabling the feature of
+  /// Null for disabling the feature.
   final int secondsBeforeRequestingAgain;
 
   /// Callback that will be called when you need to request the pin code again

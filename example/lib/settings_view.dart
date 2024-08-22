@@ -1,6 +1,7 @@
 import 'package:example/app.dart';
 import 'package:example/extensions.dart';
 import 'package:example/main.dart';
+import 'package:example/pin_code_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pin_code/flutter_pin_code.dart';
 
@@ -31,6 +32,17 @@ class _SettingsViewState extends State<SettingsView> {
       requestAgainType = RequestAgainType.fromSeconds(
           pinCodeController.requestAgainConfig!.secondsBeforeRequestingAgain);
     }
+  }
+
+  void requestAgainCallback() {
+    final navigator = navigatorKey.currentState!;
+    if (!navigator.canPop()) return;
+    navigator
+      ..popUntil((route) => route.isFirst)
+      ..pushReplacement(MaterialPageRoute(
+        builder: (context) => const PinCodeView(),
+      ));
+    showToast('Requesting again called');
   }
 
   @override
@@ -123,16 +135,17 @@ class _SettingsViewState extends State<SettingsView> {
                                 Navigator.of(context).pop();
                                 requestAgainType = type;
                                 setState(() {});
-                                showToast(
-                                    'Selected ${type.title} option for Request Again');
+                                widget.setPinViewState();
+                                final newConfig = PinCodeRequestAgainConfig(
+                                  secondsBeforeRequestingAgain: type.seconds!,
+                                  onRequestAgain: requestAgainCallback,
+                                );
                                 await pinCodeController.setRequestAgainConfig(
                                     type == RequestAgainType.disabled
                                         ? null
-                                        : pinCodeController.requestAgainConfig!
-                                            .copyWith(
-                                            secondsBeforeRequestingAgain:
-                                                type.seconds!,
-                                          ));
+                                        : newConfig);
+                                showToast(
+                                    'Selected ${type.title} option for Request Again');
                               },
                               child: Text(type.title),
                             ),
@@ -172,13 +185,17 @@ class _SettingsViewState extends State<SettingsView> {
                 if (!pinCodeController.isPinCodeSet) {
                   return showToast('PIN CODE must be set first');
                 }
-                await pinCodeController.setSkipPinCodeConfig(
-                    pinCodeController.skipPinCodeConfig == null
-                        ? SkipPinCodeConfig(
-                            duration: const Duration(minutes: 1),
-                            forcedForRequestAgain: false,
-                          )
-                        : null);
+                if (pinCodeController.skipPinCodeConfig == null) {
+                  await pinCodeController
+                      .setSkipPinCodeConfig(SkipPinCodeConfig(
+                    duration: const Duration(minutes: 1),
+                    forcedForRequestAgain: false,
+                  ));
+                  showToast('1 minute skip time enabled');
+                } else {
+                  await pinCodeController.setSkipPinCodeConfig(null);
+                  showToast('1 minute skip time disabled');
+                }
                 setState(() {});
                 widget.setPinViewState();
               },
