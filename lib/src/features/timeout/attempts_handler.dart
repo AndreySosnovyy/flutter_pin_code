@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter_pin_code/src/exceptions/cant_return_timeout_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_waste_attempt_exception.dart';
 import 'package:flutter_pin_code/src/features/timeout/models/waste_attempt_response.dart';
-import 'package:flutter_pin_code/src/logger.dart';
+import 'package:flutter_pin_code/src/features/logging/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kAttemptsPoolKey = 'flutter_pin_code.attempts_pool';

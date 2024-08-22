@@ -4,7 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/features/timeout/models/timeout_data_model.dart';
-import 'package:flutter_pin_code/src/logger.dart';
+import 'package:flutter_pin_code/src/features/logging/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const int _kDefaultIterateInterval = 30;
