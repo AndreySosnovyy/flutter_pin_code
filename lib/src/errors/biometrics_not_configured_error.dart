@@ -5,4 +5,7 @@ class BiometricsNotConfiguredError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'BiometricsNotConfiguredError: $cause';
 }

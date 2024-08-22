@@ -5,4 +5,7 @@ class InitializationAlreadyCompletedError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'InitializationAlreadyCompletedError: $cause';
 }

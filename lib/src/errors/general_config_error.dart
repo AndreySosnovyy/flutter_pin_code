@@ -5,4 +5,7 @@ class GeneralConfigError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'GeneralConfigError: $cause';
 }

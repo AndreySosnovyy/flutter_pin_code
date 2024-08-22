@@ -5,4 +5,7 @@ class RequestAgainCallbackNotSetError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'RequestAgainCallbackNotSetError: $cause';
 }

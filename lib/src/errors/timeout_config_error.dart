@@ -5,4 +5,7 @@ class TimeoutConfigError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'TimeoutConfigError: $cause';
 }

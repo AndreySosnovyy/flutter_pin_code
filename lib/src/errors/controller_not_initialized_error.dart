@@ -5,4 +5,7 @@ class ControllerNotInitializedError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'ControllerNotInitializedError: $cause';
 }

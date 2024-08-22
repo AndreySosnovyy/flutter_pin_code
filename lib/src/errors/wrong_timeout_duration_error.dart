@@ -5,4 +5,7 @@ class WrongTimeoutDurationError implements Error {
 
   @override
   StackTrace? get stackTrace => StackTrace.current;
+
+  @override
+  String toString() => 'WrongTimeoutDurationError: $cause';
 }

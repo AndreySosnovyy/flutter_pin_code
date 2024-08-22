@@ -47,6 +47,5 @@ void main() async {
     fingerprintReason: 'Touch the fingerprint sensor',
     faceIdReason: 'Look at the camera',
   );
-
   runApp(const PinCodeApp());
 }
