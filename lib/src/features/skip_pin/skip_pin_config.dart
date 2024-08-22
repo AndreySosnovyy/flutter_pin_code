@@ -3,6 +3,7 @@ import 'package:flutter_pin_code/src/errors/invalid_skip_config_error.dart';
 const String _kDurationInMillisecondsMapKey = 'durationInMilliseconds';
 const String _kForcedForRequestAgainMapKey = 'forcedForRequestAgain';
 
+// TODO(Sosnovyy): implement skips amount limit
 /// Configuration file for Skip Pin feature.
 /// This feature gives the ability to avoid entering pin code for some time
 /// after user has entered it before.
@@ -13,18 +14,7 @@ class SkipPinCodeConfig {
     required this.duration,
     this.forcedForRequestAgain = true,
   }) {
-    _validate(duration: duration);
-  }
-
-  factory SkipPinCodeConfig.fromMap(Map<String, dynamic> map) {
-    final duration =
-        Duration(milliseconds: map[_kDurationInMillisecondsMapKey]);
-    final forcedForRequestAgain = map[_kForcedForRequestAgainMapKey];
-    _validate(duration: duration);
-    return SkipPinCodeConfig(
-      duration: duration,
-      forcedForRequestAgain: forcedForRequestAgain,
-    );
+    SkipConfigUtils._validate(duration: duration);
   }
 
   /// Duration whilst pin code can be skipped.
@@ -40,10 +30,39 @@ class SkipPinCodeConfig {
   /// code for specified [duration].
   final bool forcedForRequestAgain;
 
+  /// Creates a copy of the current [SkipPinCodeConfig] with the given duration
+  SkipPinCodeConfig copyWith({
+    Duration? duration,
+  }) {
+    if (duration != null) SkipConfigUtils._validate(duration: duration);
+    return SkipPinCodeConfig(
+      duration: duration ?? this.duration,
+    );
+  }
+
+  @override
+  String toString() => 'SkipPinConfig('
+      'duration: $duration, '
+      'forcedForRequestAgain: $forcedForRequestAgain'
+      ')';
+}
+
+class SkipConfigUtils {
+  static SkipPinCodeConfig fromMap(Map<String, dynamic> map) {
+    final duration =
+        Duration(milliseconds: map[_kDurationInMillisecondsMapKey]);
+    final forcedForRequestAgain = map[_kForcedForRequestAgainMapKey];
+    _validate(duration: duration);
+    return SkipPinCodeConfig(
+      duration: duration,
+      forcedForRequestAgain: forcedForRequestAgain,
+    );
+  }
+
   /// Converts [SkipPinCodeConfig] to a map.
-  Map<String, dynamic> toMap() => {
-        _kDurationInMillisecondsMapKey: duration.inMilliseconds,
-        _kForcedForRequestAgainMapKey: forcedForRequestAgain,
+  static Map<String, dynamic> toMap(SkipPinCodeConfig config) => {
+        _kDurationInMillisecondsMapKey: config.duration.inMilliseconds,
+        _kForcedForRequestAgainMapKey: config.forcedForRequestAgain,
       };
 
   /// Validation method for [SkipPinCodeConfig] which throws errors.
@@ -55,20 +74,4 @@ class SkipPinCodeConfig {
       throw const InvalidSkipConfigError('Duration must be positive');
     }
   }
-
-  /// Creates a copy of the current [SkipPinCodeConfig] with the given duration
-  SkipPinCodeConfig copyWith({
-    Duration? duration,
-  }) {
-    if (duration != null) _validate(duration: duration);
-    return SkipPinCodeConfig(
-      duration: duration ?? this.duration,
-    );
-  }
-
-  @override
-  String toString() => 'SkipPinConfig('
-      'duration: $duration, '
-      'forcedForRequestAgain: $forcedForRequestAgain'
-      ')';
 }

@@ -61,11 +61,13 @@ class PinCodeController {
   ///  Unique key for storing current pin code.
   late final String _storageKey;
 
+  /// {@template requestAgainConfig}
   /// Configuration for "Requesting pin code again" feature.
   ///
   /// Disabled if null.
   ///
   /// Configurable by developer in advance or in runtime by user (if app allows so)!
+  /// {@endtemplate}
   PinCodeRequestAgainConfig? _requestAgainConfig;
 
   /// Configuration for "Timeouts" feature.
@@ -76,14 +78,22 @@ class PinCodeController {
   /// Configurable only by developer in advance!
   PinCodeTimeoutConfig? timeoutConfig;
 
+  /// {@template skipPinCodeConfig}
   /// Configuration for "Requesting pin code again" feature.
   ///
   /// Disabled if null.
+  ///
+  /// Pay attention that the developer has to check if pin code can be skipped
+  /// before navigating user to the pin code screen! It is possible by using
+  /// [canSkipPinCodeNow] getter.
+  /// The only case where it can be done automatically is when app state
+  /// changes in [onAppLifecycleStateChanged] and Request Again can be skipped.
   ///
   /// Configurable by developer in advance or in runtime by user (if app allows so)!
   /// But prioritized one is set by the user. Which means that if you as a
   /// developer provide SkipPinCodeConfig but another configuration is already
   /// exists in disk, it will override provided SkipPinCodeConfig from constructor.
+  /// {@endtemplate}
   SkipPinCodeConfig? _skipPinCodeConfig;
 
   /// Attempts handler.
@@ -125,7 +135,7 @@ class PinCodeController {
   /// Returns true if Timeout config is provided
   bool get isTimeoutConfigured => timeoutConfig != null;
 
-  /// Returns current request again config.
+  /// {@macro requestAgainConfig}
   PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
   /// Sets request again config and writes it in prefs.
@@ -141,7 +151,7 @@ class PinCodeController {
     }
   }
 
-  /// Returns current skip pin config.
+  /// {@macro skipPinCodeConfig}
   SkipPinCodeConfig? get skipPinCodeConfig => _skipPinCodeConfig;
 
   /// Sets skip pin config and writes it in prefs.
@@ -152,7 +162,8 @@ class PinCodeController {
     if (config == null) {
       _prefs.remove(_kSkipPinConfigKey);
     } else {
-      _prefs.setString(_kSkipPinConfigKey, json.encode(config.toMap()));
+      _prefs.setString(
+          _kSkipPinConfigKey, json.encode(SkipConfigUtils.toMap(config)));
     }
   }
 
@@ -165,6 +176,11 @@ class PinCodeController {
         DateTime.now().millisecondsSinceEpoch.toString(),
       );
     } else if (state == AppLifecycleState.resumed) {
+      if (_skipPinCodeConfig != null &&
+          !_skipPinCodeConfig!.forcedForRequestAgain &&
+          canSkipPinCodeNow) {
+        return logger.d('Request again was skipped');
+      }
       if (requestAgainConfig == null) return;
       if (requestAgainConfig!.onRequestAgain == null) {
         throw const RequestAgainCallbackNotSetError(
@@ -262,7 +278,7 @@ class PinCodeController {
   Future<SkipPinCodeConfig?> _fetchSkipPinConfigFromDisk() async {
     final rawSkipPinConfig = _prefs.getString(_kSkipPinConfigKey);
     if (rawSkipPinConfig == null) return null;
-    return SkipPinCodeConfig.fromMap(json.decode(rawSkipPinConfig));
+    return SkipConfigUtils.fromMap(json.decode(rawSkipPinConfig));
   }
 
   /// Verification of initialization.
@@ -287,6 +303,15 @@ class PinCodeController {
     if (!isDelayBetweenTestsPassed) return false;
     if (_currentPin == null) return false;
     return true;
+  }
+
+  /// Checks if pin code can be skipped because of skip pin config
+  bool get canSkipPinCodeNow {
+    if (_lastTestTimestamp == null) return false;
+    return _skipPinCodeConfig != null &&
+        _lastTestTimestamp!
+            .add(_skipPinCodeConfig!.duration)
+            .isBefore(DateTime.now());
   }
 
   /// Checks if pin code is set.
