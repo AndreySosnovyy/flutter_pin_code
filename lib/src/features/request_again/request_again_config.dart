@@ -1,8 +1,15 @@
+import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
+
 class PinCodeRequestAgainConfig {
   PinCodeRequestAgainConfig({
     required this.secondsBeforeRequestingAgain,
     this.onRequestAgain,
-  });
+  }) {
+    if (secondsBeforeRequestingAgain < 0) {
+      throw const RequestAgainConfigError(
+          'Variable "secondsBeforeRequestingAgain" must be positive or zero');
+    }
+  }
 
   /// Number of seconds needed to pass before requesting the pin code another time
   ///

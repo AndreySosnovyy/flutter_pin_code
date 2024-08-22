@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math' as math;
+import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
@@ -7,71 +7,41 @@ import 'package:flutter_pin_code/src/errors/general_config_error.dart';
 import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
 import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_provided.dart';
 import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
-import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
-import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_test_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
+import 'package:flutter_pin_code/src/features/logging/logger.dart';
 import 'package:flutter_pin_code/src/features/request_again/request_again_config.dart';
+import 'package:flutter_pin_code/src/features/skip_pin/skip_pin_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/attempts_handler.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_config.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_handler.dart';
-import 'package:flutter_pin_code/src/features/logging/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kDefaultPinCodeKey = 'flutter_pin_code.default_key';
 const String _kIsPinCodeSetKey = 'flutter_pin_code.is_pin_code_set';
-const String _kPinCodeRequestAgainSeconds =
+const String _kPinCodeRequestAgainSecondsKey =
     'flutter_pin_code.request_again_seconds';
+const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): maybe add stream of states
+// TODO(Sosnovyy): add stream of states
 class PinCodeController {
   PinCodeController({
     this.logsEnabled = false,
     String? storageKey,
     this.millisecondsBetweenTests = 0,
     PinCodeRequestAgainConfig? requestAgainConfig,
+    SkipPinCodeConfig? skipPinCodeConfig,
     this.timeoutConfig,
     this.iterateInterval,
   })  : _storageKey = storageKey ?? _kDefaultPinCodeKey,
-        _requestAgainConfig = requestAgainConfig {
-    if (requestAgainConfig != null) {
-      if (requestAgainConfig.secondsBeforeRequestingAgain < 0) {
-        throw const RequestAgainConfigError(
-            'Variable "secondsBeforeRequestingAgain" must be positive or zero');
-      }
-    }
-    if (isTimeoutConfigured) {
-      if (timeoutConfig!.timeouts.isEmpty) {
-        throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
-      }
-      if (timeoutConfig!.timeouts.keys.reduce(math.min) < 0) {
-        throw const TimeoutConfigError('Timeout cannot be negative');
-      }
-      if (timeoutConfig!.timeouts.values.reduce(math.min) < 0) {
-        throw const TimeoutConfigError('Number of tries cannot be negative');
-      }
-      if (!timeoutConfig!.timeouts.keys.contains(0)) {
-        throw const TimeoutConfigError('First timeout must be 0');
-      }
-      if (timeoutConfig!.timeouts.length < 2) {
-        throw const TimeoutConfigError(
-            'Number of entries in timeout configuration must be at least 2');
-      }
-      if (timeoutConfig!.timeouts.length !=
-          timeoutConfig!.timeouts.keys.toSet().length) {
-        throw const TimeoutConfigError('Timeouts must be unique');
-      }
-      if (timeoutConfig!.timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
-        throw const TimeoutConfigError(
-            'Max timeout is $kPinCodeMaxTimeout seconds');
-      }
-    }
+        _requestAgainConfig = requestAgainConfig,
+        _skipPinCodeConfig = skipPinCodeConfig {
     if (millisecondsBetweenTests < 0 || millisecondsBetweenTests > 3000) {
       throw const GeneralConfigError(
           'Milliseconds between tests must be between 0 and 3000');
@@ -94,13 +64,27 @@ class PinCodeController {
   /// Configuration for "Requesting pin code again" feature.
   ///
   /// Disabled if null.
+  ///
+  /// Configurable by developer in advance or in runtime by user (if app allows so)!
   PinCodeRequestAgainConfig? _requestAgainConfig;
 
   /// Configuration for "Timeouts" feature.
   /// Number of tries is unlimited if disabled.
   ///
   /// Disabled if null.
+  ///
+  /// Configurable only by developer in advance!
   PinCodeTimeoutConfig? timeoutConfig;
+
+  /// Configuration for "Requesting pin code again" feature.
+  ///
+  /// Disabled if null.
+  ///
+  /// Configurable by developer in advance or in runtime by user (if app allows so)!
+  /// But prioritized one is set by the user. Which means that if you as a
+  /// developer provide SkipPinCodeConfig but another configuration is already
+  /// exists in disk, it will override provided SkipPinCodeConfig from constructor.
+  SkipPinCodeConfig? _skipPinCodeConfig;
 
   /// Attempts handler.
   late AttemptsHandler? _attemptsHandler;
@@ -138,13 +122,11 @@ class PinCodeController {
     return _currentBiometrics;
   }
 
-  /// Returns current request again config.
-  PinCodeRequestAgainConfig? get requestAgainConfig {
-    return _requestAgainConfig;
-  }
-
   /// Returns true if Timeout config is provided
   bool get isTimeoutConfigured => timeoutConfig != null;
+
+  /// Returns current request again config.
+  PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
   /// Sets request again config and writes it in prefs.
   ///
@@ -152,15 +134,27 @@ class PinCodeController {
   set requestAgainConfig(PinCodeRequestAgainConfig? config) {
     _requestAgainConfig = config;
     if (config == null) {
-      _prefs.remove(_kPinCodeRequestAgainSeconds);
+      _prefs.remove(_kPinCodeRequestAgainSecondsKey);
     } else {
       _prefs.setInt(
-          _kPinCodeRequestAgainSeconds, config.secondsBeforeRequestingAgain);
+          _kPinCodeRequestAgainSecondsKey, config.secondsBeforeRequestingAgain);
     }
   }
 
-  /// Returns true if controller is initialized.
-  bool get isInitialized => _initCompleter.isCompleted;
+  /// Returns current skip pin config.
+  SkipPinCodeConfig? get skipPinCodeConfig => _skipPinCodeConfig;
+
+  /// Sets skip pin config and writes it in prefs.
+  ///
+  /// Provide null to remove config.
+  set skipPinCodeConfig(SkipPinCodeConfig? config) {
+    _skipPinCodeConfig = config;
+    if (config == null) {
+      _prefs.remove(_kSkipPinConfigKey);
+    } else {
+      _prefs.setString(_kSkipPinConfigKey, json.encode(config.toMap()));
+    }
+  }
 
   /// Handles lifecycle state changes for Request again feature.
   Future<void> onAppLifecycleStateChanged(AppLifecycleState state) async {
@@ -187,6 +181,9 @@ class PinCodeController {
       }
     }
   }
+
+  /// Returns true if controller is initialized.
+  bool get isInitialized => _initCompleter.isCompleted;
 
   /// Method you must call before any other method in this class.
   Future<void> initialize({
@@ -231,16 +228,21 @@ class PinCodeController {
 
       if (requestAgainConfig != null) {
         await _prefs.setInt(
-          _kPinCodeRequestAgainSeconds,
+          _kPinCodeRequestAgainSecondsKey,
           requestAgainConfig!.secondsBeforeRequestingAgain,
         );
       } else {
-        final secondsFromPrefs = _prefs.getInt(_kPinCodeRequestAgainSeconds);
+        final secondsFromPrefs = _prefs.getInt(_kPinCodeRequestAgainSecondsKey);
         if (secondsFromPrefs != null) {
           requestAgainConfig = PinCodeRequestAgainConfig(
             secondsBeforeRequestingAgain: secondsFromPrefs,
           );
         }
+      }
+
+      final skipPinConfigFromDisk = await _fetchSkipPinConfigFromDisk();
+      if (skipPinConfigFromDisk != null) {
+        _skipPinCodeConfig = skipPinConfigFromDisk;
       }
 
       _currentPin = await _fetchPinCode();
@@ -255,6 +257,12 @@ class PinCodeController {
       rethrow;
     }
     _initCompleter.complete();
+  }
+
+  Future<SkipPinCodeConfig?> _fetchSkipPinConfigFromDisk() async {
+    final rawSkipPinConfig = _prefs.getString(_kSkipPinConfigKey);
+    if (rawSkipPinConfig == null) return null;
+    return SkipPinCodeConfig.fromMap(json.decode(rawSkipPinConfig));
   }
 
   /// Verification of initialization.
@@ -321,10 +329,11 @@ class PinCodeController {
     await _prefs.setBool(_kIsPinCodeSetKey, false);
     await disableBiometrics();
     if (clearConfigs) {
-      await _prefs.remove(_kPinCodeRequestAgainSeconds);
+      await _prefs.remove(_kPinCodeRequestAgainSecondsKey);
     }
     await _timeoutHandler?.clearTimeout();
     await _attemptsHandler?.restoreAllAttempts();
+    await _prefs.remove(_kSkipPinConfigKey);
     logger.d('All pin related data were successfully cleared');
   }
 
