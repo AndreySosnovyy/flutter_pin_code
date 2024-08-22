@@ -250,8 +250,6 @@ class PinCodeController {
         return await clear();
       }
       _currentBiometrics = await _fetchBiometricsType();
-
-      // TODO(Sosnovyy): start timeout here if needed
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;

@@ -128,13 +128,11 @@ class _SettingsViewState extends State<SettingsView> {
                                 if (type == RequestAgainType.disabled) {
                                   pinCodeController.requestAgainConfig = null;
                                 } else {
-                                  final newConfig = PinCodeRequestAgainConfig(
-                                    secondsBeforeRequestingAgain: type.seconds!,
-                                    onRequestAgain: pinCodeController
-                                        .requestAgainConfig?.onRequestAgain,
-                                  );
                                   pinCodeController.requestAgainConfig =
-                                      newConfig;
+                                      pinCodeController.requestAgainConfig!
+                                          .copyWith(
+                                    secondsBeforeRequestingAgain: type.seconds!,
+                                  );
                                 }
                               },
                               child: Text(type.title),

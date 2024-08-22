@@ -1,7 +1,3 @@
-// TODO(Sosnovyy): remove flutter dependency
-import 'package:flutter/foundation.dart';
-
-// TODO(Sosnovyy): add copyWith method (needed in case you want to change callbacks)
 class PinCodeRequestAgainConfig {
   PinCodeRequestAgainConfig({
     required this.secondsBeforeRequestingAgain,
@@ -24,7 +20,20 @@ class PinCodeRequestAgainConfig {
   /// this callback or when you call onAppLifecycleStateChanged method!
   /// This is possible if user moved the app to background while still on pin
   /// code screen and then went back to foreground with "Request again" config set.
-  VoidCallback? onRequestAgain;
+  final void Function()? onRequestAgain;
+
+  /// Creates a copy of this object but with the given fields replaced with
+  /// the new values.
+  PinCodeRequestAgainConfig copyWith({
+    int? secondsBeforeRequestingAgain,
+    void Function()? onRequestAgain,
+  }) {
+    return PinCodeRequestAgainConfig(
+      secondsBeforeRequestingAgain:
+          secondsBeforeRequestingAgain ?? this.secondsBeforeRequestingAgain,
+      onRequestAgain: onRequestAgain ?? this.onRequestAgain,
+    );
+  }
 
   @override
   String toString() {
