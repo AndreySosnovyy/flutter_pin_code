@@ -1,3 +1,4 @@
+// TODO(Sosnovyy): remove flutter dependency
 import 'package:flutter/foundation.dart';
 
 // TODO(Sosnovyy): add copyWith method (needed in case you want to change callbacks)

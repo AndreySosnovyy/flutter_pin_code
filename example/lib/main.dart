@@ -36,6 +36,7 @@ class DI {
   static final pinCodeController = PinCodeController(
     timeoutConfig: refreshableTimeoutConfig,
     iterateInterval: 5,
+    logsEnabled: true,
   );
 }
 

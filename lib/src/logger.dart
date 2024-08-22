@@ -1,15 +1,27 @@
 import 'package:logger/logger.dart';
 
-// TODO(Sosnovyy): decide if make logging configurable from outside
-final logger = Logger(
+class PinLogger extends Logger {
+  PinLogger({
+    required super.printer,
+    required this.filter,
+  }) : super(filter: filter);
+
+  final EnableLogFilter filter;
+}
+
+class EnableLogFilter extends LogFilter {
+  EnableLogFilter({required this.enabled});
+
+  bool enabled;
+
+  @override
+  bool shouldLog(LogEvent event) => enabled;
+}
+
+final logger = PinLogger(
   printer: PrettyPrinter(
     dateTimeFormat: DateTimeFormat.onlyTime,
     printEmojis: false,
   ),
-  filter: EnableLogFilter(),
+  filter: EnableLogFilter(enabled: false),
 );
-
-class EnableLogFilter extends LogFilter {
-  @override
-  bool shouldLog(LogEvent event) => true;
-}
