@@ -17,6 +17,17 @@ class SettingsView extends StatefulWidget {
   State<SettingsView> createState() => _SettingsViewState();
 }
 
+void requestAgainCallback() {
+  final navigator = navigatorKey.currentState!;
+  if (!navigator.canPop()) return;
+  navigator
+    ..popUntil((route) => route.isFirst)
+    ..pushReplacement(MaterialPageRoute(
+      builder: (context) => const PinCodeView(),
+    ));
+  showToast('Requesting again called');
+}
+
 class _SettingsViewState extends State<SettingsView> {
   final pinCodeTextEditingController = TextEditingController();
   final pinCodeController = DI.pinCodeController;
@@ -32,17 +43,6 @@ class _SettingsViewState extends State<SettingsView> {
       requestAgainType = RequestAgainType.fromSeconds(
           pinCodeController.requestAgainConfig!.secondsBeforeRequestingAgain);
     }
-  }
-
-  void requestAgainCallback() {
-    final navigator = navigatorKey.currentState!;
-    if (!navigator.canPop()) return;
-    navigator
-      ..popUntil((route) => route.isFirst)
-      ..pushReplacement(MaterialPageRoute(
-        builder: (context) => const PinCodeView(),
-      ));
-    showToast('Requesting again called');
   }
 
   @override

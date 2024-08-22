@@ -311,7 +311,7 @@ class PinCodeController {
     return _skipPinCodeConfig != null &&
         _lastTestTimestamp!
             .add(_skipPinCodeConfig!.duration)
-            .isBefore(DateTime.now());
+            .isAfter(DateTime.now());
   }
 
   /// Checks if pin code is set.

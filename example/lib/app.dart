@@ -1,5 +1,6 @@
 import 'package:example/main.dart';
 import 'package:example/pin_code_view.dart';
+import 'package:example/settings_view.dart';
 import 'package:flutter/material.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -20,6 +21,13 @@ class _PinCodeAppState extends State<PinCodeApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (DI.pinCodeController.requestAgainConfig == null) return;
+    // You have also to set the callback on app start for Request again feature
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await DI.pinCodeController.setRequestAgainConfig(DI
+          .pinCodeController.requestAgainConfig!
+          .copyWith(onRequestAgain: requestAgainCallback));
+    });
   }
 
   @override
