@@ -354,6 +354,7 @@ class PinCodeController {
     if (pin == _currentPin) {
       logger.d('Pin code was successfully tested');
       _attemptsHandler?.restoreAllAttempts();
+      _timeoutHandler?.clearTimeout();
       return true;
     }
     if (isTimeoutConfigured) {

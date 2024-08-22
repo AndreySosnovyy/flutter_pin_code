@@ -116,6 +116,7 @@ class TimeoutRefresher {
     currentTimeoutToBeRefreshed = null;
     _stopIterating();
     await _prefs.remove(_kRefreshTimeoutKey);
+    logger.d('Timeout was cleared.');
   }
 
   /// Method to update timeouts in prefs. It is not necessary to call, but recommended.
