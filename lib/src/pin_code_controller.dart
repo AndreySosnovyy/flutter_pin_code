@@ -33,6 +33,7 @@ const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 // TODO(Sosnovyy): move template docs to controller
 // TODO(Sosnovyy): check if _verifyInitialized is everywhere
 // TODO(Sosnovyy): move all util methods (prefs-related) to separate class
+// TODO(Sosnovyy): check logs and add if needed
 class PinCodeController {
   PinCodeController({
     this.logsEnabled = false,
