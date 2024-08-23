@@ -29,7 +29,6 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): add stream of states
 class PinCodeController {
   PinCodeController({
     this.logsEnabled = false,
@@ -127,6 +126,14 @@ class PinCodeController {
   /// Null if pin code hasn't been tested yet in this session.
   DateTime? _lastTestTimestamp;
 
+  /// Stream controller for pin events.
+  final _pinEventsStreamController = StreamController<PinCodeEvents>();
+
+  /// Pin events stream for listening.
+  Stream<PinCodeEvents> get eventsStream =>
+      _pinEventsStreamController.stream.asBroadcastStream();
+
+  /// Returns current biometrics type.
   BiometricsType get currentBiometrics {
     _verifyInitialized();
     return _currentBiometrics;
@@ -527,6 +534,7 @@ class PinCodeController {
   /// Disposes pin code controller.
   void dispose() {
     _verifyInitialized();
+    _pinEventsStreamController.close();
     _timeoutHandler?.dispose();
     logger.d('Pin code controller was disposed');
   }
