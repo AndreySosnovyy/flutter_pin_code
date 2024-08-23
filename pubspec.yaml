@@ -4,6 +4,7 @@ version: 0.0.1
 homepage:
 
 environment:
+#  TODO(Sosnovyy): set versions
   sdk: '>=3.4.3 <4.0.0'
   flutter: ">=1.17.0"
 

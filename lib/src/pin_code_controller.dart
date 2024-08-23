@@ -29,6 +29,10 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
+// TODO(Sosnovyy): separate prefs for different controllers
+// TODO(Sosnovyy): move template docs to controller
+// TODO(Sosnovyy): check if _verifyInitialized is everywhere
+// TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 class PinCodeController {
   PinCodeController({
     this.logsEnabled = false,
@@ -290,6 +294,7 @@ class PinCodeController {
     _pinEventsStreamController.add(PinCodeEvents.initializationCompleted);
   }
 
+  /// Fetches skip pin config from disk.
   Future<SkipPinCodeConfig?> _fetchSkipPinConfigFromDisk() async {
     final rawSkipPinConfig = _prefs.getString(_kSkipPinConfigKey);
     if (rawSkipPinConfig == null) return null;
