@@ -152,9 +152,11 @@ class PinCodeController {
     _requestAgainConfig = config;
     if (config == null) {
       await _prefs.remove(_kPinCodeRequestAgainSecondsKey);
+      _pinEventsStreamController.add(PinCodeEvents.requestAgainDisabled);
     } else {
       await _prefs.setInt(
           _kPinCodeRequestAgainSecondsKey, config.secondsBeforeRequestingAgain);
+      _pinEventsStreamController.add(PinCodeEvents.requestAgainSet);
     }
   }
 
@@ -168,9 +170,11 @@ class PinCodeController {
     _skipPinCodeConfig = config;
     if (config == null) {
       await _prefs.remove(_kSkipPinConfigKey);
+      _pinEventsStreamController.add(PinCodeEvents.skipPinDisabled);
     } else {
       await _prefs.setString(
           _kSkipPinConfigKey, json.encode(SkipConfigUtils.toMap(config)));
+      _pinEventsStreamController.add(PinCodeEvents.skipPinSet);
     }
   }
 
@@ -186,7 +190,9 @@ class PinCodeController {
       if (_skipPinCodeConfig != null &&
           !_skipPinCodeConfig!.forcedForRequestAgain &&
           canSkipPinCodeNow) {
-        return logger.d('Request again was skipped');
+        logger.d('Request again was skipped');
+        _pinEventsStreamController.add(PinCodeEvents.requestAgainSkipped);
+        return;
       }
       if (requestAgainConfig == null) return;
       if (requestAgainConfig!.onRequestAgain == null) {
@@ -200,6 +206,7 @@ class PinCodeController {
       if (DateTime.now().difference(timestamp).inSeconds >=
           requestAgainConfig!.secondsBeforeRequestingAgain) {
         requestAgainConfig!.onRequestAgain!();
+        _pinEventsStreamController.add(PinCodeEvents.requestAgainCalled);
         logger.d('Request again callback was called');
       }
     }
@@ -237,10 +244,13 @@ class PinCodeController {
           onTimeoutEnded: () {
             timeoutConfig!.onTimeoutEnded?.call();
             if (_attemptsHandler!.isInLoop) _attemptsHandler!.restoreAttempt();
+            _pinEventsStreamController.add(PinCodeEvents.timeoutEnded);
           },
-          onTimeoutStarted: (durationInSeconds) => timeoutConfig!
-              .onTimeoutStarted
-              ?.call(Duration(seconds: durationInSeconds)),
+          onTimeoutStarted: (durationInSeconds) {
+            timeoutConfig!.onTimeoutStarted
+                ?.call(Duration(seconds: durationInSeconds));
+            _pinEventsStreamController.add(PinCodeEvents.timeoutStarted);
+          },
         );
         await _attemptsHandler!.initialize();
         await _timeoutHandler!.initialize();
@@ -249,6 +259,7 @@ class PinCodeController {
         _timeoutHandler = null;
       }
 
+      // TODO(Sosnovyy): from prefs first
       if (requestAgainConfig != null) {
         await _prefs.setInt(
           _kPinCodeRequestAgainSecondsKey,
@@ -280,6 +291,7 @@ class PinCodeController {
       rethrow;
     }
     _initCompleter.complete();
+    _pinEventsStreamController.add(PinCodeEvents.initializationCompleted);
   }
 
   Future<SkipPinCodeConfig?> _fetchSkipPinConfigFromDisk() async {
@@ -359,13 +371,14 @@ class PinCodeController {
     _currentPin = null;
     await _secureStorage.delete(key: _storageKey);
     await _prefs.setBool(_kIsPinCodeSetKey, false);
-    await disableBiometrics();
+    if (_currentBiometrics != BiometricsType.none) await disableBiometrics();
     if (clearConfigs) {
       await _prefs.remove(_kPinCodeRequestAgainSecondsKey);
     }
     await _timeoutHandler?.clearTimeout();
     await _attemptsHandler?.restoreAllAttempts();
     await _prefs.remove(_kSkipPinConfigKey);
+    _pinEventsStreamController.add(PinCodeEvents.pinRemoved);
     logger.d('All pin related data were successfully cleared');
   }
 
@@ -394,6 +407,7 @@ class PinCodeController {
       logger.d('Pin code was successfully tested');
       _attemptsHandler?.restoreAllAttempts();
       _timeoutHandler?.clearTimeout();
+      _pinEventsStreamController.add(PinCodeEvents.pinSuccessfullyTested);
       return true;
     }
     if (isTimeoutConfigured) {
@@ -405,6 +419,7 @@ class PinCodeController {
         }
         await clear();
         timeoutConfig!.onMaxTimeoutsReached!();
+        _pinEventsStreamController.add(PinCodeEvents.allAttemptsWasted);
         return false;
       }
       if (wasteResponse.amountOfAvailableAttemptsBeforeTimeout == 0) {
@@ -412,6 +427,7 @@ class PinCodeController {
             durationInSeconds: wasteResponse.timeoutDurationInSeconds!);
       }
     }
+    _pinEventsStreamController.add(PinCodeEvents.wrongPinCodeTested);
     return false;
   }
 
@@ -427,6 +443,7 @@ class PinCodeController {
     _currentPin = pin;
     await _secureStorage.write(key: _storageKey, value: pin);
     await _prefs.setBool(_kIsPinCodeSetKey, true);
+    _pinEventsStreamController.add(PinCodeEvents.pinSet);
     logger.d('Pin code was successfully set');
   }
 
@@ -435,6 +452,7 @@ class PinCodeController {
     _verifyInitialized();
     _currentBiometrics = type;
     await _prefs.setString(_storageKey + _kBiometricsTypeKeySuffix, type.name);
+    _pinEventsStreamController.add(PinCodeEvents.biometricsSet);
   }
 
   /// Returns the type of set biometrics.
@@ -491,6 +509,7 @@ class PinCodeController {
     _currentBiometrics = BiometricsType.none;
     await _prefs.setString(
         _storageKey + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
+    _pinEventsStreamController.add(PinCodeEvents.biometricsDisabled);
     logger.d('Biometrics was successfully disabled');
   }
 
@@ -524,9 +543,12 @@ class PinCodeController {
     );
     if (result) {
       logger.d('Biometrics was successfully tested');
+      _pinEventsStreamController
+          .add(PinCodeEvents.biometricsSuccessfullyTested);
       return true;
     } else {
-      logger.d('Something went wrong during biometrics test');
+      logger.d('Biometrics test was unsuccessful');
+      _pinEventsStreamController.add(PinCodeEvents.biometricsFailedTested);
       return false;
     }
   }
@@ -549,6 +571,7 @@ enum BiometricsType { none, face, fingerprint }
 /// and others.
 enum PinCodeEvents {
   // Configuration:
+  initializationCompleted,
   pinSet,
   pinRemoved,
   biometricsSet,
