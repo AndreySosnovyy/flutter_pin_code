@@ -259,19 +259,15 @@ class PinCodeController {
         _timeoutHandler = null;
       }
 
-      // TODO(Sosnovyy): from prefs first
-      if (requestAgainConfig != null) {
-        await _prefs.setInt(
-          _kPinCodeRequestAgainSecondsKey,
-          requestAgainConfig!.secondsBeforeRequestingAgain,
+      // Request Again configuration from disk is prioritized over constructor one
+      final requestAgainSecondsFromPrefs =
+          _prefs.getInt(_kPinCodeRequestAgainSecondsKey);
+      if (requestAgainSecondsFromPrefs != null) {
+        _requestAgainConfig = PinCodeRequestAgainConfig(
+          secondsBeforeRequestingAgain: requestAgainSecondsFromPrefs,
         );
-      } else {
-        final secondsFromPrefs = _prefs.getInt(_kPinCodeRequestAgainSecondsKey);
-        if (secondsFromPrefs != null) {
-          await setRequestAgainConfig(PinCodeRequestAgainConfig(
-            secondsBeforeRequestingAgain: secondsFromPrefs,
-          ));
-        }
+      } else if (requestAgainConfig != null) {
+        await setRequestAgainConfig(requestAgainConfig);
       }
 
       final skipPinConfigFromDisk = await _fetchSkipPinConfigFromDisk();
