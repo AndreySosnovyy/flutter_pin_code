@@ -94,7 +94,7 @@ class TimeoutRefresher {
     );
     currentTimeoutToBeRefreshed = timeout;
     if (!isIterating) _startIterating();
-    await _prefs.setString(_kRefreshTimeoutKey, json.encode(timeout.toMap()));
+    await _writeCurrentTimeoutToDisk();
   }
 
   /// Method to write current timeout to prefs.
@@ -122,9 +122,8 @@ class TimeoutRefresher {
     logger.d('Timeout was cleared.');
   }
 
-  /// Method to update timeouts in prefs. It is not necessary to call, but recommended.
-  Future<void> dispose() async {
+  /// Method to dispose the timer.
+  void dispose() {
     _stopIterating();
-    await _writeCurrentTimeoutToDisk();
   }
 }

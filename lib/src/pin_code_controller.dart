@@ -525,12 +525,45 @@ class PinCodeController {
   }
 
   /// Disposes pin code controller.
-  Future<void> dispose() async {
+  void dispose() {
     _verifyInitialized();
-    await _timeoutHandler?.dispose();
+    _timeoutHandler?.dispose();
     logger.d('Pin code controller was disposed');
   }
 }
 
 /// Types of biometrics.
 enum BiometricsType { none, face, fingerprint }
+
+/// Enum contains all events that can happen in [PinCodeController].
+/// These events are used in stream.
+/// There are all types of events: configuration-related, actual usage, timeouts
+/// and others.
+enum PinCodeEvents {
+  // Configuration:
+  pinSet,
+  pinRemoved,
+  biometricsSet,
+  biometricsDisabled,
+  requestAgainSet,
+  requestAgainDisabled,
+  skipPinSet,
+  skipPinDisabled,
+
+  // Usage:
+  pinSuccessfullyTested,
+  wrongPinCodeTested,
+  biometricsSuccessfullyTested,
+  biometricsFailedTested,
+
+  // Timeouts:
+  timeoutStarted,
+  timeoutEnded,
+
+  // Request Again:
+  requestAgainCalled,
+  requestAgainSkipped,
+
+  // Others:
+  allAttemptsWasted,
+}

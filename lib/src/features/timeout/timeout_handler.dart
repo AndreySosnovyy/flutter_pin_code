@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter_pin_code/src/errors/wrong_timeout_duration_error.dart';
 import 'package:flutter_pin_code/src/exceptions/timeout_is_already_running_exception.dart';
-import 'package:flutter_pin_code/src/features/timeout/timeout_refresher.dart';
 import 'package:flutter_pin_code/src/features/logging/logger.dart';
+import 'package:flutter_pin_code/src/features/timeout/timeout_refresher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Class to handle timeouts and its related information.
@@ -68,7 +68,7 @@ class TimeoutHandler {
   Future<void> clearTimeout() async => _refresher.clearTimeout();
 
   /// Method to dispose the timeout handler.
-  Future<void> dispose() async {
-    await _refresher.dispose();
+  void dispose() {
+    _refresher.dispose();
   }
 }
