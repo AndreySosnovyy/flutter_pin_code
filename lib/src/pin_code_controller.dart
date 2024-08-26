@@ -30,7 +30,6 @@ const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
 // TODO(Sosnovyy): !!! separate prefs for different controllers
-// TODO(Sosnovyy): !!! check if _verifyInitialized is everywhere
 // TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 // TODO(Sosnovyy): check logs and add if needed
 class PinCodeController {
@@ -125,7 +124,10 @@ class PinCodeController {
   }
 
   /// Returns true if Timeout config is provided
-  bool get isTimeoutConfigured => timeoutConfig != null;
+  bool get isTimeoutConfigured {
+    _verifyInitialized();
+    return timeoutConfig != null;
+  }
 
   /// {@template flutter_pin_code.request_again_config}
   /// Configuration for "Requesting pin code again" feature.
@@ -134,12 +136,16 @@ class PinCodeController {
   ///
   /// Configurable by developer in advance or in runtime by user (if app allows so)!
   /// {@endtemplate}
-  PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
+  PinCodeRequestAgainConfig? get requestAgainConfig {
+    _verifyInitialized();
+    return _requestAgainConfig;
+  }
 
   /// Sets request again config and writes it in prefs.
   ///
   /// Provide null to remove config.
   Future<void> setRequestAgainConfig(PinCodeRequestAgainConfig? config) async {
+    _verifyInitialized();
     _requestAgainConfig = config;
     if (config == null) {
       await _prefs.remove(_kPinCodeRequestAgainSecondsKey);
@@ -167,12 +173,16 @@ class PinCodeController {
   /// developer provide SkipPinCodeConfig but another configuration is already
   /// exists in disk, it will override provided SkipPinCodeConfig from constructor.
   /// {@endtemplate}
-  SkipPinCodeConfig? get skipPinCodeConfig => _skipPinCodeConfig;
+  SkipPinCodeConfig? get skipPinCodeConfig {
+    _verifyInitialized();
+    return _skipPinCodeConfig;
+  }
 
   /// Sets skip pin config and writes it in prefs.
   ///
   /// Provide null to remove config.
   Future<void> setSkipPinCodeConfig(SkipPinCodeConfig? config) async {
+    _verifyInitialized();
     _skipPinCodeConfig = config;
     if (config == null) {
       await _prefs.remove(_kSkipPinConfigKey);
@@ -313,10 +323,12 @@ class PinCodeController {
   }
 
   /// Checks if necessary delay set in [millisecondsBetweenTests] between tests passed.
-  bool get isDelayBetweenTestsPassed =>
-      _lastTestTimestamp == null ||
+  bool get isDelayBetweenTestsPassed {
+    _verifyInitialized();
+    return _lastTestTimestamp == null ||
       DateTime.now().difference(_lastTestTimestamp!).inMilliseconds >
           millisecondsBetweenTests;
+  }
 
   /// Checks if pin code can be tested (not disabled by timeout)
   Future<bool> canTestPinCode() async {
@@ -329,6 +341,7 @@ class PinCodeController {
 
   /// Checks if pin code can be skipped because of skip pin config
   bool get canSkipPinCodeNow {
+    _verifyInitialized();
     if (_lastTestTimestamp == null) return false;
     return _skipPinCodeConfig != null &&
         _lastTestTimestamp!
@@ -386,7 +399,10 @@ class PinCodeController {
   }
 
   /// Returns whether timeout is currently running.
-  bool get isTimeoutRunning => _timeoutHandler?.isTimeoutRunning ?? false;
+  bool get isTimeoutRunning {
+    _verifyInitialized();
+    return _timeoutHandler?.isTimeoutRunning ?? false;
+  }
 
   /// Checks if provided pin matches the current set one.
   ///
@@ -477,7 +493,10 @@ class PinCodeController {
   }
 
   /// Returns true if biometrics is set and can be tested by user.
-  bool get isBiometricsSet => currentBiometrics != BiometricsType.none;
+  bool get isBiometricsSet {
+    _verifyInitialized();
+    return currentBiometrics != BiometricsType.none;
+  }
 
   /// Enables biometrics if available on the device and returns the type of
   /// set biometrics.
@@ -509,6 +528,7 @@ class PinCodeController {
 
   /// Disables biometrics.
   Future<void> disableBiometrics() async {
+    _verifyInitialized();
     _currentBiometrics = BiometricsType.none;
     await _prefs.setString(
         _storageKey + _kBiometricsTypeKeySuffix, BiometricsType.none.name);
