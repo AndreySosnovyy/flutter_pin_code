@@ -131,16 +131,10 @@ class PinCodeController {
       _storageKey + _kBackgroundTimestampKey;
 
   /// Returns current biometrics type.
-  BiometricsType get currentBiometrics {
-    _verifyInitialized();
-    return _currentBiometrics;
-  }
+  BiometricsType get currentBiometrics => _currentBiometrics;
 
   /// Returns true if Timeout config is provided
-  bool get isTimeoutConfigured {
-    _verifyInitialized();
-    return timeoutConfig != null;
-  }
+  bool get isTimeoutConfigured => timeoutConfig != null;
 
   /// {@template flutter_pin_code.request_again_config}
   /// Configuration for "Requesting pin code again" feature.
@@ -149,10 +143,7 @@ class PinCodeController {
   ///
   /// Configurable by developer in advance or in runtime by user (if app allows so)!
   /// {@endtemplate}
-  PinCodeRequestAgainConfig? get requestAgainConfig {
-    _verifyInitialized();
-    return _requestAgainConfig;
-  }
+  PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
   /// Sets request again config and writes it in prefs.
   ///
@@ -186,10 +177,7 @@ class PinCodeController {
   /// developer provide SkipPinCodeConfig but another configuration is already
   /// exists in disk, it will override provided SkipPinCodeConfig from constructor.
   /// {@endtemplate}
-  SkipPinCodeConfig? get skipPinCodeConfig {
-    _verifyInitialized();
-    return _skipPinCodeConfig;
-  }
+  SkipPinCodeConfig? get skipPinCodeConfig => _skipPinCodeConfig;
 
   /// Sets skip pin config and writes it in prefs.
   ///
