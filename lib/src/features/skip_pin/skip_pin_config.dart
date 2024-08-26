@@ -10,23 +10,30 @@ const String _kForcedForRequestAgainMapKey = 'forcedForRequestAgain';
 /// The first pin code can not be skipped!
 class SkipPinCodeConfig {
   SkipPinCodeConfig({
+    /// {@macro flutter_pin_code.skip_pin_config.duration}
     required this.duration,
+
+    /// {@macro flutter_pin_code.skip_pin_config.forced_for_request_again}
     this.forcedForRequestAgain = true,
   }) {
     SkipConfigUtils._validate(duration: duration);
   }
 
+  /// {@template flutter_pin_code.skip_pin_config.duration}
   /// Duration whilst pin code can be skipped.
   /// Pay attention that you can still force the user to enter pin code even if
   /// skip duration is configured and active.
   ///
   /// Max skip duration is 30 minutes!
+  /// {@endtemplate}
   final Duration duration;
 
+  /// {@template flutter_pin_code.skip_pin_config.forced_for_request_again}
   /// Whether to always force user to enter pin code for Request Again.
   ///
   /// If false, user will be able to enter the app back without entering pin
   /// code for specified [duration].
+  /// {@endtemplate}
   final bool forcedForRequestAgain;
 
   /// Creates a copy of the current [SkipPinCodeConfig] with the given duration

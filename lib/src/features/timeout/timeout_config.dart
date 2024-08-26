@@ -43,8 +43,13 @@ class PinCodeTimeoutConfig {
 
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
   factory PinCodeTimeoutConfig.refreshable({
+    /// {@macro flutter_pin_code.timeout_config.timeouts}
     required Map<int, int> timeouts,
+
+    /// {@macro flutter_pin_code.timeout_config.on_timeout_ended}
     VoidCallback? onTimeoutEnded,
+
+    /// {@macro flutter_pin_code.timeout_config.on_timeout_started}
     OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
@@ -58,9 +63,16 @@ class PinCodeTimeoutConfig {
 
   /// Creates PinCodeTimeoutConfig with not refreshable timeouts
   factory PinCodeTimeoutConfig.notRefreshable({
+    /// {@macro flutter_pin_code.timeout_config.timeouts}
     required Map<int, int> timeouts,
+
+    /// {@macro flutter_pin_code.timeout_config.on_max_timeouts_reached}
     required VoidCallback onMaxTimeoutsReached,
+
+    /// {@macro flutter_pin_code.timeout_config.on_timeout_ended}
     VoidCallback? onTimeoutEnded,
+
+    /// {@macro flutter_pin_code.timeout_config.on_timeout_started}
     OnTimeoutStartedCallback? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
@@ -72,14 +84,18 @@ class PinCodeTimeoutConfig {
     );
   }
 
+  /// {@template flutter_pin_code.timeout_config.on_timeout_ended}
   /// Callback which shoots after current timeout is over.
   ///
   /// Can be used to update UI or notify user.
+  /// {@endtemplate}
   VoidCallback? onTimeoutEnded;
 
+  /// {@template flutter_pin_code.timeout_config.on_timeout_started}
   /// Callback which shoots after a timeout has started.
   ///
   /// Can be used to update UI or notify user.
+  /// {@endtemplate}
   OnTimeoutStartedCallback? onTimeoutStarted;
 
   /// {@template onMaxTimeoutsReached}
@@ -92,10 +108,10 @@ class PinCodeTimeoutConfig {
   /// {@endtemplate}
   VoidCallback? _onMaxTimeoutsReached;
 
-  /// {@macro onMaxTimeoutsReached}
+  /// {@macro flutter_pin_code.timeout_config.on_max_timeouts_reached}
   VoidCallback? get onMaxTimeoutsReached => _onMaxTimeoutsReached;
 
-  /// {@macro onMaxTimeoutsReached}
+  /// {@macro flutter_pin_code.timeout_config.on_max_timeouts_reached}
   set onMaxTimeoutsReached(VoidCallback? value) {
     if (!isRefreshable && value == null) {
       throw const NoOnMaxTimeoutsReachedCallbackProvided(
@@ -105,6 +121,7 @@ class PinCodeTimeoutConfig {
     _onMaxTimeoutsReached = value;
   }
 
+  /// {@template flutter_pin_code.timeout_config.timeouts}
   /// Map containing number of tries before every timeout
   /// where key is number of seconds and value is number of tries.
   ///
@@ -129,6 +146,7 @@ class PinCodeTimeoutConfig {
   ///   60: 2, // another 2 tries after 60 seconds timeout
   ///   600: 1, // another final try after 600 seconds timeout
   /// }
+  /// {@endtemplate}
   final Map<int, int> timeouts;
 
   /// Returns true if timeouts are configured to be refreshable.

@@ -2,7 +2,10 @@ import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
 
 class PinCodeRequestAgainConfig {
   PinCodeRequestAgainConfig({
+    /// {@macro flutter_pin_code.request_again_config.seconds_before_requesting_again}
     required this.secondsBeforeRequestingAgain,
+
+    /// {@macro flutter_pin_code.request_again_config.on_request_again}
     this.onRequestAgain,
   }) {
     if (secondsBeforeRequestingAgain < 0) {
@@ -11,11 +14,14 @@ class PinCodeRequestAgainConfig {
     }
   }
 
+  /// {@template flutter_pin_code.request_again_config.seconds_before_requesting_again}
   /// Number of seconds needed to pass before requesting the pin code another time
   ///
   /// Null for disabling the feature.
+  /// {@endtemplate}
   final int secondsBeforeRequestingAgain;
 
+  /// {@template flutter_pin_code.request_again_config.on_request_again}
   /// Callback that will be called when you need to request the pin code again
   ///
   /// You are allowed to set this later after calling constructor.
@@ -27,6 +33,7 @@ class PinCodeRequestAgainConfig {
   /// this callback or when you call onAppLifecycleStateChanged method!
   /// This is possible if user moved the app to background while still on pin
   /// code screen and then went back to foreground with "Request again" config set.
+  /// {@endtemplate}
   final void Function()? onRequestAgain;
 
   /// Creates a copy of this object but with the given fields replaced with
