@@ -29,7 +29,6 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): !!! separate prefs for different controllers
 // TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 // TODO(Sosnovyy): check logs and add if needed
 class PinCodeController {
@@ -41,7 +40,7 @@ class PinCodeController {
     SkipPinCodeConfig? skipPinCodeConfig,
     this.timeoutConfig,
     this.iterateInterval,
-  })  : _storageKey = storageKey ?? _kDefaultPinCodeKey,
+  })  : _storageKey = '${storageKey ?? _kDefaultPinCodeKey}.',
         _requestAgainConfig = requestAgainConfig,
         _skipPinCodeConfig = skipPinCodeConfig {
     if (millisecondsBetweenTests < 0 || millisecondsBetweenTests > 3000) {
@@ -117,6 +116,20 @@ class PinCodeController {
   Stream<PinCodeEvents> get eventsStream =>
       _pinEventsStreamController.stream.asBroadcastStream();
 
+  ///
+  String get _storageIsPinCodeSetKey => _storageKey + _kIsPinCodeSetKey;
+
+  ///
+  String get _storagePinCodeRequestAgainSecondsKey =>
+      _storageKey + _kPinCodeRequestAgainSecondsKey;
+
+  ///
+  String get _storageSkipPinConfigKey => _storageKey + _kSkipPinConfigKey;
+
+  ///
+  String get _storageBackgroundTimestampKey =>
+      _storageKey + _kBackgroundTimestampKey;
+
   /// Returns current biometrics type.
   BiometricsType get currentBiometrics {
     _verifyInitialized();
@@ -148,11 +161,11 @@ class PinCodeController {
     _verifyInitialized();
     _requestAgainConfig = config;
     if (config == null) {
-      await _prefs.remove(_kPinCodeRequestAgainSecondsKey);
+      await _prefs.remove(_storagePinCodeRequestAgainSecondsKey);
       _pinEventsStreamController.add(PinCodeEvents.requestAgainDisabled);
     } else {
-      await _prefs.setInt(
-          _kPinCodeRequestAgainSecondsKey, config.secondsBeforeRequestingAgain);
+      await _prefs.setInt(_storagePinCodeRequestAgainSecondsKey,
+          config.secondsBeforeRequestingAgain);
       _pinEventsStreamController.add(PinCodeEvents.requestAgainSet);
     }
   }
@@ -185,11 +198,11 @@ class PinCodeController {
     _verifyInitialized();
     _skipPinCodeConfig = config;
     if (config == null) {
-      await _prefs.remove(_kSkipPinConfigKey);
+      await _prefs.remove(_storageSkipPinConfigKey);
       _pinEventsStreamController.add(PinCodeEvents.skipPinDisabled);
     } else {
       await _prefs.setString(
-          _kSkipPinConfigKey, json.encode(SkipConfigUtils.toMap(config)));
+          _storageSkipPinConfigKey, json.encode(SkipConfigUtils.toMap(config)));
       _pinEventsStreamController.add(PinCodeEvents.skipPinSet);
     }
   }
@@ -199,7 +212,7 @@ class PinCodeController {
     _verifyInitialized();
     if (state == AppLifecycleState.hidden) {
       await _prefs.setString(
-        _kBackgroundTimestampKey,
+        _storageBackgroundTimestampKey,
         DateTime.now().millisecondsSinceEpoch.toString(),
       );
     } else if (state == AppLifecycleState.resumed) {
@@ -215,7 +228,7 @@ class PinCodeController {
         throw const RequestAgainCallbackNotSetError(
             'Request again callback not set');
       }
-      final rawTimestamp = _prefs.getString(_kBackgroundTimestampKey);
+      final rawTimestamp = _prefs.getString(_storageBackgroundTimestampKey);
       if (rawTimestamp == null) return;
       final timestamp =
           DateTime.fromMillisecondsSinceEpoch(int.parse(rawTimestamp));
@@ -250,11 +263,13 @@ class PinCodeController {
 
       if (isTimeoutConfigured) {
         _attemptsHandler = AttemptsHandler(
+          storageKey: _storageKey,
           prefs: _prefs,
           isRefreshable: timeoutConfig!.isRefreshable,
           timeoutsMap: timeoutConfig!.timeouts,
         );
         _timeoutHandler = TimeoutHandler(
+          storageKey: _storageKey,
           prefs: _prefs,
           iterateInterval: iterateInterval,
           onTimeoutEnded: () {
@@ -277,7 +292,7 @@ class PinCodeController {
 
       // Request Again configuration from disk is prioritized over constructor one
       final requestAgainSecondsFromPrefs =
-          _prefs.getInt(_kPinCodeRequestAgainSecondsKey);
+          _prefs.getInt(_storagePinCodeRequestAgainSecondsKey);
       if (requestAgainSecondsFromPrefs != null) {
         _requestAgainConfig = PinCodeRequestAgainConfig(
           secondsBeforeRequestingAgain: requestAgainSecondsFromPrefs,
@@ -292,7 +307,7 @@ class PinCodeController {
       }
 
       _currentPin = await _fetchPinCode();
-      final isPinCodeSet = _prefs.getBool(_kIsPinCodeSetKey) ?? false;
+      final isPinCodeSet = _prefs.getBool(_storageIsPinCodeSetKey) ?? false;
       if (!isPinCodeSet && _currentPin != null) {
         _initCompleter.complete();
         return await clear();
@@ -308,7 +323,7 @@ class PinCodeController {
 
   /// Fetches skip pin config from disk.
   Future<SkipPinCodeConfig?> _fetchSkipPinConfigFromDisk() async {
-    final rawSkipPinConfig = _prefs.getString(_kSkipPinConfigKey);
+    final rawSkipPinConfig = _prefs.getString(_storageSkipPinConfigKey);
     if (rawSkipPinConfig == null) return null;
     return SkipConfigUtils.fromMap(json.decode(rawSkipPinConfig));
   }
@@ -326,8 +341,8 @@ class PinCodeController {
   bool get isDelayBetweenTestsPassed {
     _verifyInitialized();
     return _lastTestTimestamp == null ||
-      DateTime.now().difference(_lastTestTimestamp!).inMilliseconds >
-          millisecondsBetweenTests;
+        DateTime.now().difference(_lastTestTimestamp!).inMilliseconds >
+            millisecondsBetweenTests;
   }
 
   /// Checks if pin code can be tested (not disabled by timeout)
@@ -386,14 +401,14 @@ class PinCodeController {
     if (_currentPin == null) return;
     _currentPin = null;
     await _secureStorage.delete(key: _storageKey);
-    await _prefs.setBool(_kIsPinCodeSetKey, false);
+    await _prefs.setBool(_storageIsPinCodeSetKey, false);
     if (_currentBiometrics != BiometricsType.none) await disableBiometrics();
     if (clearConfigs) {
-      await _prefs.remove(_kPinCodeRequestAgainSecondsKey);
+      await _prefs.remove(_storagePinCodeRequestAgainSecondsKey);
     }
     await _timeoutHandler?.clearTimeout();
     await _attemptsHandler?.restoreAllAttempts();
-    await _prefs.remove(_kSkipPinConfigKey);
+    await _prefs.remove(_storageSkipPinConfigKey);
     _pinEventsStreamController.add(PinCodeEvents.pinRemoved);
     logger.d('All pin related data were successfully cleared');
   }
@@ -461,7 +476,7 @@ class PinCodeController {
     }
     _currentPin = pin;
     await _secureStorage.write(key: _storageKey, value: pin);
-    await _prefs.setBool(_kIsPinCodeSetKey, true);
+    await _prefs.setBool(_storageIsPinCodeSetKey, true);
     _pinEventsStreamController.add(PinCodeEvents.pinSet);
     logger.d('Pin code was successfully set');
   }

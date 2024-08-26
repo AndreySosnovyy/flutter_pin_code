@@ -19,8 +19,10 @@ class TimeoutRefresher {
   TimeoutRefresher({
     required SharedPreferences prefs,
     required this.onTimeoutEnded,
+    required String storageKey,
     int? iterateInterval,
-  }) : _prefs = prefs {
+  })  : _prefs = prefs,
+        _storageKey = storageKey {
     _iterateInterval = iterateInterval ?? _kDefaultIterateInterval;
     if (_iterateInterval <= 0) {
       throw const TimeoutConfigError('iterateInterval must be greater than 0');
@@ -30,14 +32,10 @@ class TimeoutRefresher {
     }
   }
 
-  /// Method to fetch timeouts from prefs and start the iterating timer.
   ///
-  /// This method must be called before any other method in this class.
-  Future<void> initialize() async {
-    currentTimeoutToBeRefreshed = await _fetchRefreshTimeoutFromDisk();
-    if (currentTimeoutToBeRefreshed != null) _startIterating();
-  }
+  final String _storageKey;
 
+  ///
   late final SharedPreferences _prefs;
 
   /// {@macro flutter_pin_code.timeout_refresher.iterate_interval}
@@ -48,6 +46,17 @@ class TimeoutRefresher {
 
   /// Periodic timer for iterating to make updates.
   Timer? _timer;
+
+  ///
+  String get _storageRefreshTimeoutKey => _storageKey + _kRefreshTimeoutKey;
+
+  /// Method to fetch timeouts from prefs and start the iterating timer.
+  ///
+  /// This method must be called before any other method in this class.
+  Future<void> initialize() async {
+    currentTimeoutToBeRefreshed = await _fetchRefreshTimeoutFromDisk();
+    if (currentTimeoutToBeRefreshed != null) _startIterating();
+  }
 
   /// Method to start the timer iterating to make updates.
   void _startIterating() {
@@ -98,16 +107,16 @@ class TimeoutRefresher {
   /// Method to write current timeout to prefs.
   Future<void> _writeCurrentTimeoutToDisk() async {
     if (currentTimeoutToBeRefreshed == null) {
-      await _prefs.remove(_kRefreshTimeoutKey);
+      await _prefs.remove(_storageRefreshTimeoutKey);
     } else {
-      await _prefs.setString(_kRefreshTimeoutKey,
+      await _prefs.setString(_storageRefreshTimeoutKey,
           json.encode(currentTimeoutToBeRefreshed!.toMap()));
     }
   }
 
   /// Method to fetch current timeout from prefs.
   Future<Timeout?> _fetchRefreshTimeoutFromDisk() async {
-    final rawTimeout = _prefs.getString(_kRefreshTimeoutKey);
+    final rawTimeout = _prefs.getString(_storageRefreshTimeoutKey);
     if (rawTimeout == null) return null;
     return Timeout.fromMap(json.decode(rawTimeout));
   }
@@ -116,7 +125,7 @@ class TimeoutRefresher {
   Future<void> clearTimeout() async {
     currentTimeoutToBeRefreshed = null;
     _stopIterating();
-    await _prefs.remove(_kRefreshTimeoutKey);
+    await _prefs.remove(_storageRefreshTimeoutKey);
     logger.d('Timeout was cleared.');
   }
 

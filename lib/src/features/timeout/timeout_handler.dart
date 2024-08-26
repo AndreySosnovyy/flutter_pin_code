@@ -12,9 +12,15 @@ class TimeoutHandler {
     required SharedPreferences prefs,
     required this.onTimeoutEnded,
     required this.onTimeoutStarted,
+    required String storageKey,
     this.iterateInterval,
-  }) : _prefs = prefs;
+  })  : _prefs = prefs,
+        _storageKey = storageKey;
 
+  ///
+  final String _storageKey;
+
+  ///
   final SharedPreferences _prefs;
 
   /// Callback to be called when timeout has started.
@@ -33,6 +39,7 @@ class TimeoutHandler {
   Future<void> initialize() async {
     _refresher = TimeoutRefresher(
       prefs: _prefs,
+      storageKey: _storageKey,
       onTimeoutEnded: onTimeoutEnded,
       iterateInterval: iterateInterval,
     );

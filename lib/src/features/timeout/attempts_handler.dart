@@ -15,7 +15,12 @@ class AttemptsHandler {
     required SharedPreferences prefs,
     required this.timeoutsMap,
     required this.isRefreshable,
-  }) : _prefs = prefs;
+    required String storageKey,
+  })  : _prefs = prefs,
+        _storageKey = storageKey;
+
+  ///
+  final String _storageKey;
 
   ///
   final SharedPreferences _prefs;
@@ -32,16 +37,22 @@ class AttemptsHandler {
   Map<String, String> get currentAttemptsAsStringMap =>
       currentAttempts.map((k, v) => MapEntry(k.toString(), v.toString()));
 
+  ///
+  String get _storageAttemptsPoolKey => _storageKey + _kAttemptsPoolKey;
+
+  ///
+  String get _storageTimeoutsMapHashKey => _storageKey + _kTimeoutsMapHash;
+
   /// Method to initialize the attempts handler.
   /// This method must be called before any other method in this class.
   Future<void> initialize() async {
-    final timeoutsMapHash = _prefs.getString(_kTimeoutsMapHash);
+    final timeoutsMapHash = _prefs.getString(_storageTimeoutsMapHashKey);
     if (timeoutsMapHash == null ||
         timeoutsMapHash != timeoutsMap.hashCode.toString()) {
       await _prefs.setString(
-          _kTimeoutsMapHash, timeoutsMap.hashCode.toString());
+          _storageTimeoutsMapHashKey, timeoutsMap.hashCode.toString());
     }
-    final rawPool = _prefs.getString(_kAttemptsPoolKey);
+    final rawPool = _prefs.getString(_storageAttemptsPoolKey);
     if (rawPool == null || timeoutsMapHash != timeoutsMap.hashCode.toString()) {
       currentAttempts = Map.from(timeoutsMap);
     } else {
@@ -67,7 +78,7 @@ class AttemptsHandler {
       currentAttempts[duration] = currentAttempts[duration]! + 1;
     }
     await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
+        _storageAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     logger.d('One attempt was returned'
         '${duration != null ? ' for $duration timeout' : ''}');
   }
@@ -78,7 +89,7 @@ class AttemptsHandler {
       ..clear()
       ..addAll(Map.from(timeoutsMap));
     await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
+        _storageAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     logger.d('All attempts were restored');
   }
 
@@ -97,7 +108,7 @@ class AttemptsHandler {
     currentAttempts[currentAvailableDuration] =
         currentAttempts[currentAvailableDuration]! - 1;
     await _prefs.setString(
-        _kAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
+        _storageAttemptsPoolKey, json.encode(currentAttemptsAsStringMap));
     final hasNextAttempts = currentAttempts.keys
         .any((duration) => duration > currentAvailableDuration);
     final amountOfAvailableAttemptsBeforeTimeout =
