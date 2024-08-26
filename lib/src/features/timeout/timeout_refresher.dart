@@ -40,9 +40,7 @@ class TimeoutRefresher {
 
   late final SharedPreferences _prefs;
 
-  /// {@template iterateInterval}
-  /// Interval between timeout state check iterations in seconds.
-  /// {@endtemplate}
+  /// {@macro flutter_pin_code.timeout_refresher.iterate_interval}
   late final int _iterateInterval;
 
   /// Callback to be called when the timeout is over and refreshed.

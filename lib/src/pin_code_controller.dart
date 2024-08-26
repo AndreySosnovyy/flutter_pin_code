@@ -29,9 +29,8 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): separate prefs for different controllers
-// TODO(Sosnovyy): move template docs to controller
-// TODO(Sosnovyy): check if _verifyInitialized is everywhere
+// TODO(Sosnovyy): !!! separate prefs for different controllers
+// TODO(Sosnovyy): !!! check if _verifyInitialized is everywhere
 // TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 // TODO(Sosnovyy): check logs and add if needed
 class PinCodeController {
@@ -65,13 +64,7 @@ class PinCodeController {
   ///  Unique key for storing current pin code.
   late final String _storageKey;
 
-  /// {@template requestAgainConfig}
-  /// Configuration for "Requesting pin code again" feature.
-  ///
-  /// Disabled if null.
-  ///
-  /// Configurable by developer in advance or in runtime by user (if app allows so)!
-  /// {@endtemplate}
+  /// {@macro flutter_pin_code.request_again_config}
   PinCodeRequestAgainConfig? _requestAgainConfig;
 
   /// Configuration for "Timeouts" feature.
@@ -82,22 +75,7 @@ class PinCodeController {
   /// Configurable only by developer in advance!
   PinCodeTimeoutConfig? timeoutConfig;
 
-  /// {@template skipPinCodeConfig}
-  /// Configuration for "Requesting pin code again" feature.
-  ///
-  /// Disabled if null.
-  ///
-  /// Pay attention that the developer has to check if pin code can be skipped
-  /// before navigating user to the pin code screen! It is possible by using
-  /// [canSkipPinCodeNow] getter.
-  /// The only case where it can be done automatically is when app state
-  /// changes in [onAppLifecycleStateChanged] and Request Again can be skipped.
-  ///
-  /// Configurable by developer in advance or in runtime by user (if app allows so)!
-  /// But prioritized one is set by the user. Which means that if you as a
-  /// developer provide SkipPinCodeConfig but another configuration is already
-  /// exists in disk, it will override provided SkipPinCodeConfig from constructor.
-  /// {@endtemplate}
+  /// {@macro flutter_pin_code.skip_pin_config}
   SkipPinCodeConfig? _skipPinCodeConfig;
 
   /// Attempts handler.
@@ -106,7 +84,9 @@ class PinCodeController {
   /// Timeout handler.
   late TimeoutHandler? _timeoutHandler;
 
-  /// {@macro iterateInterval}
+  /// {@template flutter_pin_code.timeout_refresher.iterate_interval}
+  /// Interval between timeout state check iterations in seconds.
+  /// {@endtemplate}
   final int? iterateInterval;
 
   /// Number of milliseconds between tests.
@@ -147,7 +127,13 @@ class PinCodeController {
   /// Returns true if Timeout config is provided
   bool get isTimeoutConfigured => timeoutConfig != null;
 
-  /// {@macro requestAgainConfig}
+  /// {@template flutter_pin_code.request_again_config}
+  /// Configuration for "Requesting pin code again" feature.
+  ///
+  /// Disabled if null.
+  ///
+  /// Configurable by developer in advance or in runtime by user (if app allows so)!
+  /// {@endtemplate}
   PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
   /// Sets request again config and writes it in prefs.
@@ -165,7 +151,22 @@ class PinCodeController {
     }
   }
 
-  /// {@macro skipPinCodeConfig}
+  /// {@template flutter_pin_code.skip_pin_config}
+  /// Configuration for "Requesting pin code again" feature.
+  ///
+  /// Disabled if null.
+  ///
+  /// Pay attention that the developer has to check if pin code can be skipped
+  /// before navigating user to the pin code screen! It is possible by using
+  /// [canSkipPinCodeNow] getter.
+  /// The only case where it can be done automatically is when app state
+  /// changes in [onAppLifecycleStateChanged] and Request Again can be skipped.
+  ///
+  /// Configurable by developer in advance or in runtime by user (if app allows so)!
+  /// But prioritized one is set by the user. Which means that if you as a
+  /// developer provide SkipPinCodeConfig but another configuration is already
+  /// exists in disk, it will override provided SkipPinCodeConfig from constructor.
+  /// {@endtemplate}
   SkipPinCodeConfig? get skipPinCodeConfig => _skipPinCodeConfig;
 
   /// Sets skip pin config and writes it in prefs.
