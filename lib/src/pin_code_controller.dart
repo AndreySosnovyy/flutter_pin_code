@@ -99,7 +99,7 @@ class PinCodeController {
   String? _currentPin;
 
   /// Current biometrics.
-  late BiometricsType _currentBiometrics;
+  BiometricsType _currentBiometrics = BiometricsType.none;
 
   /// Constant pin code max length.
   final int pinCodeMaxLength = 64;
@@ -198,7 +198,7 @@ class PinCodeController {
   /// Handles lifecycle state changes for Request again feature.
   Future<void> onAppLifecycleStateChanged(AppLifecycleState state) async {
     _verifyInitialized();
-    if (state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.inactive) {
       await _prefs.setString(
         _storageBackgroundTimestampKey,
         DateTime.now().millisecondsSinceEpoch.toString(),
@@ -240,7 +240,7 @@ class PinCodeController {
     /// Message for requesting face id use.
     String? faceIdReason,
   }) async {
-    if (_initCompleter.isCompleted) {
+    if (isInitialized) {
       throw const InitializationAlreadyCompletedError(
           'Initialization already completed');
     }
@@ -302,6 +302,7 @@ class PinCodeController {
       }
       _currentBiometrics = await _fetchBiometricsType();
     } on Object catch (e) {
+      print('e.toString() = ${e.toString()}');
       _initCompleter.completeError(e);
       rethrow;
     }
