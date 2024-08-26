@@ -302,7 +302,6 @@ class PinCodeController {
       }
       _currentBiometrics = await _fetchBiometricsType();
     } on Object catch (e) {
-      print('e.toString() = ${e.toString()}');
       _initCompleter.completeError(e);
       rethrow;
     }
