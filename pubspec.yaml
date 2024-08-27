@@ -1,12 +1,10 @@
 name: flutter_pin_code
-description: "A new Flutter package project."
+description: "All pin code related logic in one place"
 version: 0.0.1
 homepage:
 
 environment:
-#  TODO(Sosnovyy): set versions
-  sdk: '>=3.4.3 <4.0.0'
-  flutter: ">=1.17.0"
+  sdk: '>=2.17.0 <4.0.0'
 
 dependencies:
   flutter:

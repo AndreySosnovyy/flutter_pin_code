@@ -1,39 +1,58 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+[//]: # (TODO: add image)
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+[//]: # (TODO: short introduction)
+This package is here to bring easy use of Pin code feature and its related
+sub-features.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Take attention that **flutter_pin_code** only provides controller for
+handling all needed logic but not any UI-level classes, functions,
+widgets or utils!   
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+### Biometrics
+
+### Timeouts
+
+[//]: # (TODO: can be set only by developer)
+
+### Request Again
+
+[//]: # (TODO: can be set both by developer and user)
+
+### Skip Pin
+
+[//]: # (TODO: can be set both by developer and user)
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Configuration from local_authorization
+
+[//]: # (https://pub.dev/packages/local_auth#ios-integration)
+[//]: # (https://pub.dev/packages/local_auth#android-integration)
+
+### Controller initialization
+
+[//]: # (TODO: biometrics reasons)
+
+### Request Again configuration
+
+#### Set onAppLifeCycleStateChanged
+
+#### Reset callback
+
+### Disposing
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+### Configuring
 
-```dart
-const like = 'sample';
-```
+#### Errors
 
-## Additional information
+### Pin code
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+### Biometrics
+
+### Exceptions
+
+## Ending
