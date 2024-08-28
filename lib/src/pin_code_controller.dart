@@ -29,8 +29,14 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
+/// Constant pin code max length.
+const int pinCodeMaxLength = 64;
+
 // TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 // TODO(Sosnovyy): check logs and add if needed
+// TODO(Sosnovyy): move biometrics logic to a separate class
+// TODO(Sosnovyy): refactor exceptions by using abstract interfaces
+// TODO(Sosnovyy): maybe replace errors with asserts
 class PinCodeController {
   PinCodeController({
     this.logsEnabled = false,
@@ -100,9 +106,6 @@ class PinCodeController {
 
   /// Current biometrics.
   BiometricsType _currentBiometrics = BiometricsType.none;
-
-  /// Constant pin code max length.
-  final int pinCodeMaxLength = 64;
 
   /// Timestamp of last pin code test.
   ///
@@ -508,7 +511,7 @@ class PinCodeController {
     if (isBiometricsSet) return currentBiometrics;
     if (_currentPin == null) {
       throw const CantSetBiometricsWithoutPinException(
-          'Cant set biometrics without PIN CODE being set first');
+          'Can\'t set biometrics without PIN CODE being set first');
     }
     if (!await _localAuthentication.isDeviceSupported()) {
       return BiometricsType.none;
