@@ -2,6 +2,7 @@ import 'package:example/main.dart';
 import 'package:example/pin_code_view.dart';
 import 'package:example/settings_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pin_code/flutter_pin_code.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -49,5 +50,18 @@ class _PinCodeAppState extends State<PinCodeApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+}
+
+extension BiometricsTypeExtension on BiometricsType {
+  String get title {
+    switch (this) {
+      case BiometricsType.none:
+        return 'None';
+      case BiometricsType.face:
+        return 'Face ID';
+      case BiometricsType.fingerprint:
+        return 'Fingerprint';
+    }
   }
 }
