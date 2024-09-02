@@ -16,8 +16,6 @@ class PinCodeRequestAgainConfig {
 
   /// {@template flutter_pin_code.request_again_config.seconds_before_requesting_again}
   /// Number of seconds needed to pass before requesting the pin code another time
-  ///
-  /// Null for disabling the feature.
   /// {@endtemplate}
   final int secondsBeforeRequestingAgain;
 

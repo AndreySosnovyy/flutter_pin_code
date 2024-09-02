@@ -144,7 +144,7 @@ class PinCodeTimeoutConfig {
   /// {
   ///   0: 3, // initially you have 3 tries before falling into 60 seconds timeout
   ///   60: 2, // another 2 tries after 60 seconds timeout
-  ///   600: 1, // another final try after 600 seconds timeout
+  ///   600: 1, // another try after 600 seconds timeout
   /// }
   /// {@endtemplate}
   final Map<int, int> timeouts;

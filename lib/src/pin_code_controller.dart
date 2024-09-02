@@ -34,6 +34,7 @@ const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 // TODO(Sosnovyy): move biometrics logic to a separate class
 // TODO(Sosnovyy): refactor exceptions by using abstract interfaces
 // TODO(Sosnovyy): maybe replace errors with asserts
+// TODO(Sosnovyy): add normal package liter rules set
 class PinCodeController {
   PinCodeController({
     this.logsEnabled = false,

@@ -1,5 +1,4 @@
 import 'package:example/app.dart';
-import 'package:example/extensions.dart';
 import 'package:example/main.dart';
 import 'package:example/pin_code_view.dart';
 import 'package:flutter/material.dart';

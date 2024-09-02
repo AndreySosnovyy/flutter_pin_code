@@ -70,9 +70,11 @@ biometrics. These strings will be used when calling local_auth methods.
 Pin code controller handles app life cycle changes. The only thing developer
 must do is to provide these changes when they happen. To do so you can add
 `WidgetsBindingObserver` mixin to your app and override these 3 methods:
-`initState`, `didChangeAppLifecycleState`, `dispose`. Where you have to do 
+`initState`, `didChangeAppLifecycleState`, `dispose`. Where you have to do
 3 things:
+
 1) add observer:
+
 ```dart
 @override
 void initState() {
@@ -80,21 +82,25 @@ void initState() {
   WidgetsBinding.instance.addObserver(this);
 }
 ```
+
 2) provide states to controller:
+
 ```dart
 @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    myPinCodeController.onAppLifecycleStateChanged(state);
-    super.didChangeAppLifecycleState(state);
-  }
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  myPinCodeController.onAppLifecycleStateChanged(state);
+  super.didChangeAppLifecycleState(state);
+}
 ```
+
 3) dispose it:
+
 ```dart
 @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+  super.dispose();
+}
 ```
 
 #### Reset callback
@@ -102,30 +108,108 @@ void initState() {
 If you use this feature you have to always set onRequestAgain on app start
 and everytime you set config in controller!</br>
 You can do something like this in your app class:
+
 ```dart
 @override
-  void initState() {
-    super.initState();
-    if (DI.pinCodeController.requestAgainConfig == null) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await myPinCodeController.setRequestAgainConfig(
-          myPinCodeController.requestAgainConfig!
-          .copyWith(onRequestAgain: requestAgainCallback));
-    });
-  }
+void initState() {
+  super.initState();
+  if (DI.pinCodeController.requestAgainConfig == null) return;
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    await myPinCodeController.setRequestAgainConfig(
+        myPinCodeController.requestAgainConfig!
+            .copyWith(onRequestAgain: requestAgainCallback));
+  });
+}
 ```
+
+## Usage
+
+### Logging
+
+You can turn on logging while debugging when creating instance of `PinCodeController`
+by providing `logsEnabled` parameter. Logs are disabled by default.
+
+### Configuring
+
+As mentioned before you can configure 3 different features in `PinCodeController`.
+Two of them are configurable in runtime (means it can be both preset by developer or
+by user if developer allow so in app settings or any other place): Request Again
+and Skip Pin. Timeout feature can only be set in advance but not while app is
+already running.
+
+For every feature there are separate config class: `PinCodeRequestAgainConfig`,
+`SkipPinCodeConfig` and `PinCodeTimeoutConfig`.
+
+#### Timeouts
+
+Timeout configuration class has 2 named constructors: `PinCodeTimeoutConfig.notRefreshable`
+and `PinCodeTimeoutConfig.refreshable`. Difference between these two described in
+[introduction section](#timeouts).
+
+Both of these requires `timeouts` map configuration and some other documented callbacks.
+Map containing number of tries before every timeout where key is number of seconds
+and value is number of tries. If all timeouts are over, and they are not refreshable, 
+then onMaxTimeoutsReached will be called. If timeouts are refreshable and the
+last configured timeout is over, user will get one attempt at a time.
+This logic will repeat infinitely!
+
+Some more requirements: 
+- Max value is 21600 seconds (6 hours).
+- The first timeout duration is always 0!
+- The order is not important, but it's easier to understand if you put timeouts
+in direct order. The important factor is timeout duration:
+shorter timeout can not be used after a longer one. It will always go one by one
+depending on current timeout duration starting from 0.
+
+Example: </br>
+{ </br>
+&nbsp;&nbsp;&nbsp;&nbsp;0: 3, // initially you have 3 tries before falling into 60 seconds timeout </br>
+&nbsp;&nbsp;&nbsp;&nbsp;60: 2, // another 2 tries after 60 seconds timeout </br>
+&nbsp;&nbsp;&nbsp;&nbsp;600: 1, // another try after 600 seconds timeout </br>
+}
+
+#### Request Again
+
+Request Again configuration class constructor requires `secondsBeforeRequestingAgain`. 
+This main parameter determines how long user can be in background without entering
+pin code again after going to foreground. 
+
+If 0 seconds provided, it will require pin code every time.
+
+Actual `onRequestAgain` callback (which is called when configured time condition
+is true) can be set later after. But it must be for sure set before very first
+potential Request Again call.
+
+#### Skip Pin
+
+Skip Pin configuration requires duration in which potentially there will be no
+need to enter pin code.
+
+Take attention that you as a developer must handle it manually by checking 
+`canSkipPinCodeNow` getter. Controller can only automatically handle skips in while
+Requesting Again if you set `forcedForRequestAgain` to false (true by default)
+in configuration.
+
+### Testing
+
+### Reacting to events (stream)
+
+You may need to react to pin code related events (such as successfully entered pin,
+newly set configuration or timeout start) for UI part of the app: updating view,
+navigation, showing toast, etc. One way for implementing that is by listening to
+stream named `eventsStream` in `PinCodeController`. You can find the list of all
+events can be thrown in this stream in `PinCodeEvents` enum.
+
+### Exceptions
+
+In runtime if you do something wrong and exception will be thrown. So it is better
+to wrap calling some controller methods in try-catch blocks and handle them properly.
+
+You can see the list of all potential exceptions in lib/src/exceptions.
 
 ### Disposing
 
 Pin code controller has `dispose` method which is meant to be called when you call
 dispose method in view class.
-
-## Usage
-
-### Configuring
-
-### Testing
-
-### Exceptions
 
 ## Ending
