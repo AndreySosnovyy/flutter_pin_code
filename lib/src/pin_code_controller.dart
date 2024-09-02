@@ -29,9 +29,6 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-/// Constant pin code max length.
-const int pinCodeMaxLength = 64;
-
 // TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 // TODO(Sosnovyy): check logs and add if needed
 // TODO(Sosnovyy): move biometrics logic to a separate class
@@ -138,6 +135,9 @@ class PinCodeController {
 
   /// Returns true if Timeout config is provided
   bool get isTimeoutConfigured => timeoutConfig != null;
+
+  /// Constant pin code max length.
+  final int pinCodeMaxLength = 64;
 
   /// {@template flutter_pin_code.request_again_config}
   /// Configuration for "Requesting pin code again" feature.
