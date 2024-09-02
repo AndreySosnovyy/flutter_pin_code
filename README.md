@@ -1,6 +1,5 @@
 [//]: # (TODO: add image)
 
-[//]: # (TODO: short introduction)
 This package is here to bring easy use of Pin code feature and its related
 sub-features.
 
@@ -18,8 +17,9 @@ working with it: testing, setting, removing, etc.
 ### Biometrics
 
 This package uses features from [local_auth](https://pub.dev/packages/local_auth)
-handling biometrics. Using PinCodeController you can check if biometrics is
-available on current device, set it if so, test it, remove.
+handling biometrics. Biometrics may only work on real devices! Using
+PinCodeController you can check if biometrics is available on current device,
+set it if so, test it, remove.
 
 Also don't forget to [configure your app](#configuration-from-local_auth)
 for using biometrics.
@@ -148,18 +148,19 @@ and `PinCodeTimeoutConfig.refreshable`. Difference between these two described i
 
 Both of these requires `timeouts` map configuration and some other documented callbacks.
 Map containing number of tries before every timeout where key is number of seconds
-and value is number of tries. If all timeouts are over, and they are not refreshable, 
+and value is number of tries. If all timeouts are over, and they are not refreshable,
 then onMaxTimeoutsReached will be called. If timeouts are refreshable and the
 last configured timeout is over, user will get one attempt at a time.
 This logic will repeat infinitely!
 
-Some more requirements: 
+Some more requirements:
+
 - Max value is 21600 seconds (6 hours).
 - The first timeout duration is always 0!
 - The order is not important, but it's easier to understand if you put timeouts
-in direct order. The important factor is timeout duration:
-shorter timeout can not be used after a longer one. It will always go one by one
-depending on current timeout duration starting from 0.
+  in direct order. The important factor is timeout duration:
+  shorter timeout can not be used after a longer one. It will always go one by one
+  depending on current timeout duration starting from 0.
 
 Example: </br>
 { </br>
@@ -170,9 +171,9 @@ Example: </br>
 
 #### Request Again
 
-Request Again configuration class constructor requires `secondsBeforeRequestingAgain`. 
+Request Again configuration class constructor requires `secondsBeforeRequestingAgain`.
 This main parameter determines how long user can be in background without entering
-pin code again after going to foreground. 
+pin code again after going to foreground.
 
 If 0 seconds provided, it will require pin code every time.
 
@@ -185,12 +186,18 @@ potential Request Again call.
 Skip Pin configuration requires duration in which potentially there will be no
 need to enter pin code.
 
-Take attention that you as a developer must handle it manually by checking 
+Take attention that you as a developer must handle it manually by checking
 `canSkipPinCodeNow` getter. Controller can only automatically handle skips in while
 Requesting Again if you set `forcedForRequestAgain` to false (true by default)
 in configuration.
 
 ### Testing
+
+If previously you have set pin and maybe event biometrics you can test them using
+async methods `testPinCode` and `testBiometrics`. They return `true` if test was
+successful and `false` in any other case.
+You may also want to check if testing is available at the moment. It is possible
+by checking via `canTestPinCode` method or other getters from `PinCodeController` class.
 
 ### Reacting to events (stream)
 
@@ -211,5 +218,3 @@ You can see the list of all potential exceptions in lib/src/exceptions.
 
 Pin code controller has `dispose` method which is meant to be called when you call
 dispose method in view class.
-
-## Ending
