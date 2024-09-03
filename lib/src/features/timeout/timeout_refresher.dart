@@ -12,9 +12,13 @@ const int _kMaxIterateInterval = 120;
 const String _kRefreshTimeoutKey = 'flutter_pin_code.timeout_to_be_refreshed';
 
 // TODO(Sosnovyy): refactor from periodic timer to a normal one
+
+/// {@template flutter_pin_code.timeout_refresher}
 /// Class is responsible for storing, refreshing timeouts and notifying
 /// TimeoutHandler about timeout events.
+/// {@endtemplate}
 class TimeoutRefresher {
+  /// {@macro flutter_pin_code.timeout_refresher}
   TimeoutRefresher({
     required SharedPreferences prefs,
     required this.onTimeoutEnded,

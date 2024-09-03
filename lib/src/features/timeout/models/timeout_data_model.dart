@@ -1,4 +1,8 @@
+/// {@template flutter_pin_code.timeout}
+/// Data model for timeouts.
+/// {@endtemplate}
 class Timeout {
+  /// {@macro flutter_pin_code.timeout}
   Timeout({
     required this.durationInSeconds,
     required this.expirationTimestamp,
@@ -10,6 +14,7 @@ class Timeout {
   /// Timestamp of the expiration
   final DateTime expirationTimestamp;
 
+  ///
   factory Timeout.fromMap(Map<String, dynamic> json) {
     return Timeout(
       durationInSeconds: json['durationInSeconds'] as int,
@@ -19,6 +24,7 @@ class Timeout {
     );
   }
 
+  ///
   Map<String, dynamic> toMap() {
     return {
       'durationInSeconds': durationInSeconds,

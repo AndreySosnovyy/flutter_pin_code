@@ -1,4 +1,8 @@
+/// {@template flutter_pin_code.waste_attempt_response}
+/// Response from the waste attempt handler.
+/// {@endtemplate}
 class WasteAttemptResponse {
+  /// {@macro flutter_pin_code.waste_attempt_response}
   WasteAttemptResponse({
     required this.amountOfAvailableAttemptsBeforeTimeout,
     required this.timeoutDurationInSeconds,

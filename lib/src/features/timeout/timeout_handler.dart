@@ -5,8 +5,11 @@ import 'package:flutter_pin_code/src/features/logging/logger.dart';
 import 'package:flutter_pin_code/src/features/timeout/timeout_refresher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// {@template flutter_pin_code.timeout_handler}
 /// Class to handle timeouts and its related information.
+/// {@endtemplate}
 class TimeoutHandler {
+  /// {@macro flutter_pin_code.timeout_handler}
   TimeoutHandler({
     required SharedPreferences prefs,
     required this.onTimeoutEnded,

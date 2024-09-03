@@ -1,4 +1,8 @@
+/// {@template flutter_pin_code.request_again_config}
+/// Configuration for requesting the pin code again
+/// {@endtemplate}
 class PinCodeRequestAgainConfig {
+  /// {@macro flutter_pin_code.request_again_config}
   PinCodeRequestAgainConfig({
     /// {@macro flutter_pin_code.request_again_config.seconds_before_requesting_again}
     required this.secondsBeforeRequestingAgain,

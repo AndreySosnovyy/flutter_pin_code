@@ -1,14 +1,15 @@
-
-
 const String _kDurationInMillisecondsMapKey = 'durationInMilliseconds';
 const String _kForcedForRequestAgainMapKey = 'forcedForRequestAgain';
 
+/// {@template flutter_pin_code.skip_pin_config}
 /// Configuration file for Skip Pin feature.
 /// This feature gives the ability to avoid entering pin code for some time
 /// after user has entered it before.
 ///
 /// The first pin code can not be skipped!
+/// {@endtemplate}
 class SkipPinCodeConfig {
+  /// {@macro flutter_pin_code.skip_pin_config}
   SkipPinCodeConfig({
     /// {@macro flutter_pin_code.skip_pin_config.duration}
     required this.duration,
@@ -53,7 +54,9 @@ class SkipPinCodeConfig {
       ')';
 }
 
+///
 class SkipConfigUtils {
+  ///
   static SkipPinCodeConfig fromMap(Map<String, dynamic> map) {
     final duration =
         Duration(milliseconds: map[_kDurationInMillisecondsMapKey]);
