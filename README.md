@@ -60,8 +60,6 @@ will be unexpected app behavior and crushes when you call biometrics-related met
 ### Controller initialization
 
 Before calling any method in pin code controller, it must be initialized!</br>
-When initializing you can provide 2 reasons in String format in case you use
-biometrics. These strings will be used when calling local_auth methods.
 
 ### Request Again configuration
 
