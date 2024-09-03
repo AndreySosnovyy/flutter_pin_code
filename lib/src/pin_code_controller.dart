@@ -532,6 +532,8 @@ class PinCodeController {
   ///
   /// If you want to have the initial request when you open your app or go to
   /// the pin code screen, you have to implement this logic manually!
+  ///
+  /// Reasons from parameter will be displayed in system dialog if possible.
   Future<bool> testBiometrics({
     /// Message for requesting fingerprint touch.
     required String fingerprintReason,

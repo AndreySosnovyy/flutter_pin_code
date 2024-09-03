@@ -95,8 +95,8 @@ class _PinCodeViewState extends State<PinCodeView> {
                         showToast('Biometrics is not set');
                       } else {
                         final result = await pinCodeController.testBiometrics(
-                          fingerprintReason: 'fingerprintReason',
-                          faceIdReason: 'faceIdReason',
+                          fingerprintReason: 'Touch fingerprint scanner',
+                          faceIdReason: 'Look in the camera',
                         );
                         if (result) {
                           showToast(

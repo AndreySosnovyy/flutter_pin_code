@@ -56,6 +56,8 @@ In case you want to work with biometrics, you have to go through all the steps
 to configure local_auth for [android](https://pub.dev/packages/local_auth#android-integration)
 and [ios](https://pub.dev/packages/local_auth#ios-integration)! Otherwise, there
 will be unexpected app behavior and crushes when you call biometrics-related methods.
+Be sure to configure using guide for appropriate local_auth dependency version in 
+flutter_pin_code (check in pubspec.yaml)!
 
 ### Controller initialization
 

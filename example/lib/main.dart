@@ -43,7 +43,6 @@ class DI {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize pin code controller!
-  await DI.pinCodeController.testPinCode('pin');
   await DI.pinCodeController.initialize();
   runApp(const PinCodeApp());
 }
