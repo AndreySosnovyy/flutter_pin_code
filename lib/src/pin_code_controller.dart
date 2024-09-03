@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
+import 'package:flutter_pin_code/src/exceptions/cant_test_biometrics_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_test_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
 import 'package:flutter_pin_code/src/exceptions/wrong_pin_code_format_exception.dart';
@@ -23,10 +24,6 @@ const String _kPinCodeRequestAgainSecondsKey =
 const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
-
-// TODO(Sosnovyy): check logs and add if needed
-// TODO(Sosnovyy): add normal package liter rules set
-// TODO(Sosnovyy): reasons in initialize and in testBiometrics
 
 /// {@template flutter_pin_code.pin_code_controller}
 /// Controller for working with pin code related features.
@@ -234,13 +231,7 @@ class PinCodeController {
   }
 
   /// Method you must call before any other method in this class.
-  Future<void> initialize({
-    /// Message for requesting fingerprint touch.
-    String? fingerprintReason,
-
-    /// Message for requesting face id use.
-    String? faceIdReason,
-  }) async {
+  Future<void> initialize() async {
     assert(!isControllerInitialized, 'Initialization already completed');
     try {
       _prefs = await SharedPreferences.getInstance();
@@ -549,13 +540,15 @@ class PinCodeController {
     required String faceIdReason,
   }) async {
     _verifyInitialized();
-    final String reason;
+    if (!isBiometricsSet) {
+      throw const CantTestBiometricsException(
+          'You need to set biometrics first');
+    }
+    late final String reason;
     if (_currentBiometrics == BiometricsType.fingerprint) {
       reason = fingerprintReason;
     } else if (_currentBiometrics == BiometricsType.face) {
       reason = faceIdReason;
-    } else {
-      reason = ''; // This will throw an exception
     }
     final result = await _localAuthentication.authenticate(
       localizedReason: reason,
