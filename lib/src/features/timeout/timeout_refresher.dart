@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 import 'package:flutter_pin_code/src/features/logging/logger.dart';
 import 'package:flutter_pin_code/src/features/timeout/models/timeout_data_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,12 +23,9 @@ class TimeoutRefresher {
   })  : _prefs = prefs,
         _storageKey = storageKey {
     _iterateInterval = iterateInterval ?? _kDefaultIterateInterval;
-    if (_iterateInterval <= 0) {
-      throw const TimeoutConfigError('iterateInterval must be greater than 0');
-    } else if (_iterateInterval > _kMaxIterateInterval) {
-      throw const TimeoutConfigError(
-          'iterateInterval is too big, max is $_kMaxIterateInterval seconds');
-    }
+    assert(_iterateInterval > 0, 'iterateInterval must be greater than 0');
+    assert(_iterateInterval <= _kMaxIterateInterval,
+        'iterateInterval is too big, max is $_kMaxIterateInterval seconds');
   }
 
   ///

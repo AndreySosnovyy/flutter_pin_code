@@ -1,5 +1,3 @@
-import 'package:flutter_pin_code/src/errors/request_again_config_error.dart';
-
 class PinCodeRequestAgainConfig {
   PinCodeRequestAgainConfig({
     /// {@macro flutter_pin_code.request_again_config.seconds_before_requesting_again}
@@ -8,10 +6,10 @@ class PinCodeRequestAgainConfig {
     /// {@macro flutter_pin_code.request_again_config.on_request_again}
     this.onRequestAgain,
   }) {
-    if (secondsBeforeRequestingAgain < 0) {
-      throw const RequestAgainConfigError(
-          'Variable "secondsBeforeRequestingAgain" must be positive or zero');
-    }
+    assert(
+      secondsBeforeRequestingAgain >= 0,
+      'Variable "secondsBeforeRequestingAgain" must be positive or zero',
+    );
   }
 
   /// {@template flutter_pin_code.request_again_config.seconds_before_requesting_again}

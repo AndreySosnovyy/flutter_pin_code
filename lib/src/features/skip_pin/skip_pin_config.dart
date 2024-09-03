@@ -1,4 +1,4 @@
-import 'package:flutter_pin_code/src/errors/invalid_skip_config_error.dart';
+
 
 const String _kDurationInMillisecondsMapKey = 'durationInMilliseconds';
 const String _kForcedForRequestAgainMapKey = 'forcedForRequestAgain';
@@ -73,11 +73,7 @@ class SkipConfigUtils {
 
   /// Validation method for [SkipPinCodeConfig] which throws errors.
   static void _validate({required Duration duration}) {
-    if (duration.inMinutes > 30) {
-      throw const InvalidSkipConfigError('Max skip duration is 30 minutes');
-    }
-    if (duration.isNegative) {
-      throw const InvalidSkipConfigError('Duration must be positive');
-    }
+    assert(duration.inMinutes <= 30, 'Max skip duration is 30 minutes');
+    assert(!duration.isNegative, 'Duration must be positive and non-zero');
   }
 }

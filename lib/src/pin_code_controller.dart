@@ -2,11 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_pin_code/src/errors/controller_not_initialized_error.dart';
-import 'package:flutter_pin_code/src/errors/general_config_error.dart';
-import 'package:flutter_pin_code/src/errors/initialization_already_completed_error.dart';
-import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_provided.dart';
-import 'package:flutter_pin_code/src/errors/request_again_callback_not_set_error.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/cant_test_pin_exception.dart';
 import 'package:flutter_pin_code/src/exceptions/pin_code_not_set.dart';
@@ -29,11 +24,8 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
-// TODO(Sosnovyy): move all util methods (prefs-related) to separate class
 // TODO(Sosnovyy): check logs and add if needed
-// TODO(Sosnovyy): move biometrics logic to a separate class
 // TODO(Sosnovyy): refactor exceptions by using abstract interfaces
-// TODO(Sosnovyy): maybe replace errors with asserts
 // TODO(Sosnovyy): add normal package liter rules set
 // TODO(Sosnovyy): reasons in initialize and in testBiometrics
 class PinCodeController {
@@ -47,11 +39,11 @@ class PinCodeController {
     this.iterateInterval,
   })  : _storageKey = '${storageKey ?? _kDefaultPinCodeKey}.',
         _requestAgainConfig = requestAgainConfig,
-        _skipPinCodeConfig = skipPinCodeConfig {
-    if (millisecondsBetweenTests < 0 || millisecondsBetweenTests > 3000) {
-      throw const GeneralConfigError(
-          'Milliseconds between tests must be between 0 and 3000');
-    }
+        _skipPinCodeConfig = skipPinCodeConfig,
+        assert(
+          millisecondsBetweenTests >= 0 && millisecondsBetweenTests <= 3000,
+          'Milliseconds between tests must be between 0 and 3000',
+        ) {
     logger.filter.enabled = logsEnabled;
   }
 
@@ -141,6 +133,9 @@ class PinCodeController {
   /// Constant pin code max length.
   final int pinCodeMaxLength = 64;
 
+  /// Returns true if controller is initialized.
+  bool get isControllerInitialized => _initCompleter.isCompleted;
+
   /// {@template flutter_pin_code.request_again_config}
   /// Configuration for "Requesting pin code again" feature.
   ///
@@ -217,10 +212,10 @@ class PinCodeController {
         return;
       }
       if (requestAgainConfig == null) return;
-      if (requestAgainConfig!.onRequestAgain == null) {
-        throw const RequestAgainCallbackNotSetError(
-            'Request again callback not set');
-      }
+      assert(
+        requestAgainConfig!.onRequestAgain != null,
+        'Request again callback not set',
+      );
       final rawTimestamp = _prefs.getString(_storageBackgroundTimestampKey);
       if (rawTimestamp == null) return;
       final timestamp =
@@ -234,9 +229,6 @@ class PinCodeController {
     }
   }
 
-  /// Returns true if controller is initialized.
-  bool get isInitialized => _initCompleter.isCompleted;
-
   /// Method you must call before any other method in this class.
   Future<void> initialize({
     /// Message for requesting fingerprint touch.
@@ -245,10 +237,7 @@ class PinCodeController {
     /// Message for requesting face id use.
     String? faceIdReason,
   }) async {
-    if (isInitialized) {
-      throw const InitializationAlreadyCompletedError(
-          'Initialization already completed');
-    }
+    assert(!isControllerInitialized, 'Initialization already completed');
     try {
       _prefs = await SharedPreferences.getInstance();
       _secureStorage = const FlutterSecureStorage();
@@ -324,10 +313,10 @@ class PinCodeController {
   /// Verification of initialization.
   /// Must be called before any other method in this class.
   void _verifyInitialized() {
-    if (!_initCompleter.isCompleted) {
-      throw const ControllerNotInitializedError(
-          'Call async initialize() method before any other method or getter');
-    }
+    assert(
+      isControllerInitialized,
+      'Call async initialize() method before any other method or getter',
+    );
   }
 
   /// Checks if necessary delay set in [millisecondsBetweenTests] between tests passed.
@@ -440,10 +429,10 @@ class PinCodeController {
     if (isTimeoutConfigured) {
       final wasteResponse = await _attemptsHandler!.wasteAttempt();
       if (wasteResponse.areAllAttemptsWasted && !timeoutConfig!.isRefreshable) {
-        if (timeoutConfig!.onMaxTimeoutsReached == null) {
-          throw const NoOnMaxTimeoutsReachedCallbackProvided(
-              'No callback provided, but it must be already called');
-        }
+        assert(
+          timeoutConfig!.onMaxTimeoutsReached != null,
+          'No callback provided, but it must be already called',
+        );
         await clear();
         timeoutConfig!.onMaxTimeoutsReached!();
         _pinEventsStreamController.add(PinCodeEvents.allAttemptsWasted);

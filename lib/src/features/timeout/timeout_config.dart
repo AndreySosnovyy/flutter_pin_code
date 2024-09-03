@@ -1,8 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
-import 'package:flutter_pin_code/src/errors/no_on_max_timeouts_reached_callback_provided.dart';
-import 'package:flutter_pin_code/src/errors/timeout_config_error.dart';
 
 const int kPinCodeMaxTimeout = 21600;
 
@@ -16,29 +14,17 @@ class PinCodeTimeoutConfig {
     required this.timeouts,
     required this.isRefreshable,
   }) : _onMaxTimeoutsReached = onMaxTimeoutsReached {
-    if (timeouts.isEmpty) {
-      throw const TimeoutConfigError('Variable "timeouts" cannot be empty');
-    }
-    if (timeouts.keys.reduce(math.min) < 0) {
-      throw const TimeoutConfigError('Timeout cannot be negative');
-    }
-    if (timeouts.values.reduce(math.min) < 0) {
-      throw const TimeoutConfigError('Number of tries cannot be negative');
-    }
-    if (!timeouts.keys.contains(0)) {
-      throw const TimeoutConfigError('First timeout must be 0');
-    }
-    if (timeouts.length < 2) {
-      throw const TimeoutConfigError(
-          'Number of entries in timeout configuration must be at least 2');
-    }
-    if (timeouts.length != timeouts.keys.toSet().length) {
-      throw const TimeoutConfigError('Timeouts must be unique');
-    }
-    if (timeouts.keys.reduce(math.max) > kPinCodeMaxTimeout) {
-      throw const TimeoutConfigError(
-          'Max timeout is $kPinCodeMaxTimeout seconds');
-    }
+    assert(timeouts.isNotEmpty, 'Variable "timeouts" cannot be empty');
+    assert(timeouts.keys.reduce(math.min) >= 0, 'Timeout cannot be negative');
+    assert(
+        timeouts.values.reduce(math.min) >= 0, 'Attempts cannot be negative');
+    assert(timeouts.keys.contains(0), 'First timeout must be 0');
+    assert(timeouts.length >= 2,
+        'Number of entries in timeout configuration must be at least 2');
+    assert(timeouts.length == timeouts.keys.toSet().length,
+        'Timeouts must be unique');
+    assert(timeouts.keys.reduce(math.max) <= kPinCodeMaxTimeout,
+        'Max timeout is $kPinCodeMaxTimeout seconds');
   }
 
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
@@ -112,13 +98,13 @@ class PinCodeTimeoutConfig {
   VoidCallback? get onMaxTimeoutsReached => _onMaxTimeoutsReached;
 
   /// {@macro flutter_pin_code.timeout_config.on_max_timeouts_reached}
-  set onMaxTimeoutsReached(VoidCallback? value) {
-    if (!isRefreshable && value == null) {
-      throw const NoOnMaxTimeoutsReachedCallbackProvided(
-          'No onMaxTimeoutsReached callback provided '
-          'but the configuration is refreshable and must have it');
-    }
-    _onMaxTimeoutsReached = value;
+  set onMaxTimeoutsReached(VoidCallback? callback) {
+    assert(
+      isRefreshable || callback != null,
+      'No onMaxTimeoutsReached callback provided but the configuration is '
+      'refreshable and must have one',
+    );
+    _onMaxTimeoutsReached = callback;
   }
 
   /// {@template flutter_pin_code.timeout_config.timeouts}
