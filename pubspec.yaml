@@ -5,10 +5,10 @@ repository: https://github.com/AndreySosnovyy/flutter_pin_code
 issue_tracker: https://github.com/AndreySosnovyy/flutter_pin_code/issues
 topics:
   - pin
-  - pin code
+  - pin-code
   - security
   - biometrics
-  - face id
+  - face-id
 
 environment:
   sdk: '>=2.17.0 <4.0.0'
