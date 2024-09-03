@@ -25,7 +25,6 @@ const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
 // TODO(Sosnovyy): check logs and add if needed
-// TODO(Sosnovyy): refactor exceptions by using abstract interfaces
 // TODO(Sosnovyy): add normal package liter rules set
 // TODO(Sosnovyy): reasons in initialize and in testBiometrics
 class PinCodeController {
