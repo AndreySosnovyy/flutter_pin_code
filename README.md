@@ -1,10 +1,9 @@
-[//]: # (TODO: add image)
+[//]: # (TODO: add intro image)
 
-This package is here to bring easy use of Pin code feature and its related
-sub-features.
+Package for easy use of PIN code and its related features in Flutter applications.
 
-Take attention that **flutter_pin_code** only provides controller for
-handling all needed logic but not any UI-level classes, functions,
+Take attention that package **pin** only provides controller for
+handling all needed pin-related logic but not any UI-level classes, functions,
 widgets or utils!
 
 ## Features
@@ -56,8 +55,8 @@ In case you want to work with biometrics, you have to go through all the steps
 to configure local_auth for [android](https://pub.dev/packages/local_auth#android-integration)
 and [ios](https://pub.dev/packages/local_auth#ios-integration)! Otherwise, there
 will be unexpected app behavior and crushes when you call biometrics-related methods.
-Be sure to configure using guide for appropriate local_auth dependency version in 
-flutter_pin_code (check in pubspec.yaml)!
+Be sure to configure using guide for appropriate local_auth dependency version in
+**pin**'s pubspec.yaml!
 
 ### Controller initialization
 

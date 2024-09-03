@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:flutter_pin_code/src/exceptions/timeout_is_already_running_exception.dart';
-import 'package:flutter_pin_code/src/features/logging/logger.dart';
-import 'package:flutter_pin_code/src/features/timeout/timeout_refresher.dart';
+import 'package:pin/src/exceptions/timeout_is_already_running_exception.dart';
+import 'package:pin/src/features/logging/logger.dart';
+import 'package:pin/src/features/timeout/timeout_refresher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// {@template flutter_pin_code.timeout_handler}

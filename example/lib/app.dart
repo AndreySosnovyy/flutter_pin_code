@@ -2,7 +2,7 @@ import 'package:example/main.dart';
 import 'package:example/pin_code_view.dart';
 import 'package:example/settings_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pin_code/flutter_pin_code.dart';
+import 'package:pin/pin.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();

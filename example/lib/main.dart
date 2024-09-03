@@ -1,6 +1,6 @@
 import 'package:example/app.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pin_code/flutter_pin_code.dart';
+import 'package:pin/pin.dart';
 
 class DI {
   // This configuration is used in example by default
