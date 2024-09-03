@@ -1,6 +1,8 @@
 import 'package:flutter_pin_code/src/exceptions/abstract_exception.dart';
 
+///
 class CantTestBiometricsException implements PinException {
+  ///
   const CantTestBiometricsException(this.cause);
 
   @override

@@ -27,7 +27,12 @@ const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 // TODO(Sosnovyy): check logs and add if needed
 // TODO(Sosnovyy): add normal package liter rules set
 // TODO(Sosnovyy): reasons in initialize and in testBiometrics
+
+/// {@template flutter_pin_code.pin_code_controller}
+/// Controller for working with pin code related features.
+/// {@endtemplate}
 class PinCodeController {
+  /// {@macro flutter_pin_code.pin_code_controller}
   PinCodeController({
     this.logsEnabled = false,
     String? storageKey,
@@ -582,7 +587,16 @@ class PinCodeController {
 }
 
 /// Types of biometrics.
-enum BiometricsType { none, face, fingerprint }
+enum BiometricsType {
+  /// No biometrics set.
+  none,
+
+  /// Face ID.
+  face,
+
+  /// Fingerprint.
+  fingerprint,
+}
 
 /// Enum contains all events that can happen in [PinCodeController].
 /// These events are used in stream.
@@ -590,30 +604,61 @@ enum BiometricsType { none, face, fingerprint }
 /// and others.
 enum PinCodeEvents {
   // Configuration:
+  /// Initialization was completed.
   initializationCompleted,
+
+  /// PIN code was set.
   pinSet,
+
+  /// PIN code was removed.
   pinRemoved,
+
+  /// Biometrics was set.
   biometricsSet,
+
+  /// Biometrics was removed.
   biometricsDisabled,
+
+  /// Request again configuration was set.
   requestAgainSet,
+
+  /// Request again configuration was removed.
   requestAgainDisabled,
+
+  /// Skip pin configuration was set.
   skipPinSet,
+
+  /// Skip pin configuration was removed.
   skipPinDisabled,
 
   // Usage:
+  /// Pin code was tested successfully.
   pinSuccessfullyTested,
+
+  /// Pin code was tested unsuccessfully.
   wrongPinCodeTested,
+
+  /// Biometrics was tested successfully.
   biometricsSuccessfullyTested,
+
+  /// Biometrics was tested unsuccessfully.
   biometricsFailedTested,
 
   // Timeouts:
+  /// Timeout was started.
   timeoutStarted,
+
+  /// Timeout was ended.
   timeoutEnded,
 
   // Request Again:
+  /// Request again was called.
   requestAgainCalled,
+
+  /// Request again was skipped.
   requestAgainSkipped,
 
   // Others:
+  /// All attempts were wasted.
   allAttemptsWasted,
 }

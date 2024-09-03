@@ -2,10 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 
-const int kPinCodeMaxTimeout = 21600;
+const int _kPinCodeMaxTimeout = 21600;
 
-typedef OnTimeoutStartedCallback = Function(Duration timeoutDuration);
-
+/// Configuration for the pin code timeout feature.
 class PinCodeTimeoutConfig {
   PinCodeTimeoutConfig._({
     required this.onTimeoutEnded,
@@ -23,8 +22,8 @@ class PinCodeTimeoutConfig {
         'Number of entries in timeout configuration must be at least 2');
     assert(timeouts.length == timeouts.keys.toSet().length,
         'Timeouts must be unique');
-    assert(timeouts.keys.reduce(math.max) <= kPinCodeMaxTimeout,
-        'Max timeout is $kPinCodeMaxTimeout seconds');
+    assert(timeouts.keys.reduce(math.max) <= _kPinCodeMaxTimeout,
+        'Max timeout is $_kPinCodeMaxTimeout seconds');
   }
 
   /// Creates PinCodeTimeoutConfig with refreshable timeouts
@@ -36,7 +35,7 @@ class PinCodeTimeoutConfig {
     VoidCallback? onTimeoutEnded,
 
     /// {@macro flutter_pin_code.timeout_config.on_timeout_started}
-    OnTimeoutStartedCallback? onTimeoutStarted,
+    Function(Duration timeoutDuration)? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
       isRefreshable: true,
@@ -59,7 +58,7 @@ class PinCodeTimeoutConfig {
     VoidCallback? onTimeoutEnded,
 
     /// {@macro flutter_pin_code.timeout_config.on_timeout_started}
-    OnTimeoutStartedCallback? onTimeoutStarted,
+    Function(Duration timeoutDuration)? onTimeoutStarted,
   }) {
     return PinCodeTimeoutConfig._(
       isRefreshable: false,
@@ -82,7 +81,7 @@ class PinCodeTimeoutConfig {
   ///
   /// Can be used to update UI or notify user.
   /// {@endtemplate}
-  OnTimeoutStartedCallback? onTimeoutStarted;
+  Function(Duration timeoutDuration)? onTimeoutStarted;
 
   /// {@template onMaxTimeoutsReached}
   /// Callback which shoots after all timeouts are over and they are not refreshable.
@@ -117,7 +116,7 @@ class PinCodeTimeoutConfig {
   /// If timeouts are refreshable and the last configured timeout is over, user
   /// will get one attempt at a time. This logic will repeat infinitely!
   ///
-  /// Max value is 21600 ([kPinCodeMaxTimeout]) seconds.
+  /// Max value is 21600 ([_kPinCodeMaxTimeout]) seconds.
   ///
   /// The first timeout duration is always 0!
   ///
