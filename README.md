@@ -201,7 +201,7 @@ potential Request Again call.
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
 
-#### Skip Pin
+### Configure Skip Pin
 
 Skip Pin configuration requires the duration in which potentially there will be no
 need to enter PIN code.
