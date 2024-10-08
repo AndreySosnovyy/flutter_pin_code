@@ -237,7 +237,7 @@ need to enter PIN code.
 
 Take attention that you as a developer must handle it **manually** by checking
 `canSkipPinCodeNow` getter value.</br>
-Controller can only automatically handle skips for Request Again if you
+Controller can only automatically handle skips for **Request Again** if you
 set `forcedForRequestAgain` to `false` (enabled by default) in configuration.
 
 ```dart
@@ -249,7 +249,7 @@ await controller.setSkipPinCodeConfig(
 ); 
 ```
 
-> **_NOTE:_** The **Skip pin** feature can be configured both by developer
+> **_NOTE:_** The **Skip Pin** feature can be configured both by developer
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
 
