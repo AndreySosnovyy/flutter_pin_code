@@ -148,7 +148,7 @@ When creating an instance of `PinCodeController` pass `logsEnabled` parameter eq
 to `true`. It is helpful for debugging purposes as all happening events inside
 the controller are covered with logs. Disabled by default.
 
-### Configure Timeouts
+### </br>Configure Timeouts
 
 Timeout configuration class has 2 named constructors: 
 PinCodeTimeoutConfig.notRefreshable` and `PinCodeTimeoutConfig.refreshable`.
@@ -185,7 +185,7 @@ Example:
 > **_NOTE:_** The **Timeouts** feature can only be **set in advance**, but not
 > while app is already running.
 
-### Configure Request Again
+### </br>Configure Request Again
 
 Request Again configuration class constructor requires `secondsBeforeRequestingAgain`.
 This main parameter determines how long user can be in background without entering
@@ -201,7 +201,7 @@ potential Request Again call.
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
 
-### Configure Skip Pin
+### </br>Configure Skip Pin
 
 Skip Pin configuration requires the duration in which potentially there will be no
 need to enter PIN code.
@@ -215,7 +215,7 @@ set `forcedForRequestAgain` to `false` (enabled by default) in configuration.
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
 
-### Testing PIN code and biometrics
+### </br>Testing PIN code and biometrics
 
 If PIN code is set you can **test** (check is correct) it by calling `testPinCode`
 method. It will return `true` if it is correct and `false` if it is not.</br>
@@ -224,7 +224,7 @@ The same goes for biometrics, but it is called `testBiometrics`.
 There also `canTestPinCode` and `isPinSet` which can be called to check if it is set,
 if it can be tested at this moment and so on. 
 
-### Reacting to events (stream)
+### </br>Reacting to events (stream)
 
 You may need to react to PIN code related events (such as successfully entered pin,
 newly set configuration or timeout start) in UI: updating view, navigating, showing
@@ -232,14 +232,14 @@ toast, etc. One way for implementing that is by **listening to stream** named
 `eventsStream` from `PinCodeController`. You can find the list of all events can be
 thrown in this stream in enum called `PinCodeEvents`.
 
-### Exceptions
+### </br>Exceptions
 
 In runtime if you do something wrong an exception will be thrown. So it is better
 to wrap calling some controller methods in try-catch blocks and handle them properly.
 
 You can see the list of all potential exceptions in lib/src/exceptions.
 
-### Disposing
+### </br>Disposing
 
 Pin code controller has `dispose` method which is meant to be called when you call
 dispose method in view class.
