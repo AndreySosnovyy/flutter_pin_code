@@ -28,7 +28,7 @@ necessary methods to set, update, remove, test.</br>
 ### Biometrics
 
 This package uses [**local_auth**](https://pub.dev/packages/local_auth) for handling
-biometrics. Using PinCodeController you can check if biometrics is available on
+biometrics. By using PinCodeController you can check if biometrics is available on
 current device, set it if so, test it, remove.
 
 > **_NOTE:_** Biometrics may only work on **real devices**!
@@ -125,7 +125,7 @@ void dispose() {
 ```
 
 </br>If you use this Request again feature you have to _always_ set `onRequestAgain`
-callback when your app starts and also _everytime_ you set a new config in controller.</br>
+callback when your app starts and also _every time_ you set a new config in controller.</br>
 Fox example you can do it inside `initState` in your app's class:
 
 ```dart
@@ -148,10 +148,14 @@ When creating an instance of `PinCodeController` pass `logsEnabled` parameter eq
 to `true`. It is helpful for debugging purposes as all happening events inside
 the controller are covered with logs. Disabled by default.
 
+```dart
+final controller = PinCodeController(logsEnabled: true);
+```
+
 ### </br>Configure Timeouts
 
 Timeout configuration class has 2 named constructors: 
-PinCodeTimeoutConfig.notRefreshable` and `PinCodeTimeoutConfig.refreshable`.
+`PinCodeTimeoutConfig.notRefreshable` and `PinCodeTimeoutConfig.refreshable`.
 Difference between these two described in [introduction section](#timeouts).
 
 Both of these requires `timeouts` map configuration and a few callbacks
@@ -174,12 +178,25 @@ Some more requirements:
 
 Example:
 ```dart
-{
-  0: 3, // initially you have 3 tries before falling into 60 seconds timeout
-  60: 2, // another 2 tries after 60 seconds timeout
-  600: 1, // another try after 600 seconds timeout
-  // In case of refreshable timeouts you will get one attempt after every 600 seconds
-}
+final timeoutConfig = PinCodeTimeoutConfig.notRefreshable(
+  onTimeoutEnded: () {
+    showToast('Timeout has ended, you can test pin code now!');
+  },
+  onTimeoutStarted: (timeoutDuration) {
+    showToast('Timeout has started, you must wait $timeoutDuration '
+            'before it ends!');
+  },
+  onMaxTimeoutsReached: () {
+    showToast('Signing the user out and performing navigation '
+            'to the auth screen!');
+  },
+  timeouts: {
+    0: 3, // initially you have 3 tries before falling into 60 seconds timeout
+    60: 2, // another 2 tries after 60 seconds timeout
+    600: 1, // another try after 600 seconds timeout
+    // In case of refreshable timeouts you will get one attempt after every 600 seconds
+  },
+);
 ```
 
 > **_NOTE:_** The **Timeouts** feature can only be **set in advance**, but not
@@ -197,6 +214,18 @@ The actual `onRequestAgain` callback, which is called when configured time condi
 is true, can be set later after. But it must be for sure set before very first
 potential Request Again call.
 
+```dart
+await controller.setRequestAgainConfig(
+    PinCodeRequestAgainConfig(
+    secondsBeforeRequestingAgain: 60,
+    onRequestAgain: () {
+      // Navigate user to PIN screen without ability to avoid it via back button
+      // and add any other logic you need here
+    },
+  ),
+); 
+```
+
 > **_NOTE:_** The **Request again** feature can be configured both by developer
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
@@ -211,6 +240,15 @@ Take attention that you as a developer must handle it **manually** by checking
 Controller can only automatically handle skips for Request Again if you
 set `forcedForRequestAgain` to `false` (enabled by default) in configuration.
 
+```dart
+await controller.setSkipPinCodeConfig(
+    SkipPinCodeConfig(
+    duration: const Duration(minutes: 1),
+    forcedForRequestAgain: false,
+  ),
+); 
+```
+
 > **_NOTE:_** The **Skip pin** feature can be configured both by developer
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
@@ -222,7 +260,22 @@ method. It will return `true` if it is correct and `false` if it is not.</br>
 The same goes for biometrics, but it is called `testBiometrics`.
 
 There also `canTestPinCode`, `isPinSet` and `isBiometricsSet` which can be called
-to check if it is set, if it can be tested at this moment and so on. 
+to check if it is set, if it can be tested at this moment and so on.
+
+```dart
+if (pinCodeController.isTimeoutRunning) {
+  return showToast('You must wait for timeout to end');
+}
+if (!await pinCodeController.canTestPinCode()) {
+  return showToast('You can\'t test PIN CODE now');
+}
+final isPinCodeCorrect = await pinCodeController.testPinCode(pin);
+if (isPinCodeCorrect) {
+  // Navigate user to the next screen
+} else {
+  // Display error on screen or show toast
+}
+```
 
 ### </br>Reacting to events (stream)
 
@@ -231,6 +284,12 @@ newly set configuration or timeout start) in UI: updating view, navigating, show
 toast, etc. One way for implementing that is by **listening to stream** named
 `eventsStream` from `PinCodeController`. You can find the list of all events can be
 thrown in this stream in enum called `PinCodeEvents`.
+
+```dart
+final subscription = controller.eventsStream.listen((event) {
+  // Update UI, make analytics record or make custom logs here
+});
+```
 
 ### </br>Exceptions
 
@@ -243,6 +302,14 @@ You can see the list of all potential exceptions in lib/src/exceptions.
 
 Pin code controller has `dispose` method which is meant to be called when you call
 dispose method in view class.
+
+```dart
+@override
+void dispose() {
+  controller.dispose();
+  super.dispose();
+}
+```
 
 ## Additional information
 
