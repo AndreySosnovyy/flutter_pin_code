@@ -1,10 +1,14 @@
 [//]: # (TODO: add intro image)
 
-Package for easy use of PIN code and its related features in Flutter applications.
+**pin** package contains all the backend logic any Flutter application may need 
 
-Take attention that package **pin** only provides controller for
-handling all needed pin-related logic but not any UI-level classes, functions,
-widgets or utils!
+If you are also interested in fast implementation of PIN codd related UI, then check
+out **pin_ui** package.
+
+<p align="left">
+<a href="https://pub.dev/packages/pin"><img src="https://img.shields.io/pub/v/pin.svg?style=flat&colorB=blue&label=pin pub" alt="Pub"></a>
+<a href="https://github.com/AndreySosnovyy/flutter_pin_code"><img src="https://img.shields.io/github/stars/andreysosnovyy/flutter_pin_code.svg?&style=flat&logo=github&color=red&label=pin" alt="Star on Github"></a>
+</p>
 
 ## Features
 
@@ -49,7 +53,7 @@ there is also a special configuration for this case!
 
 ## Getting started
 
-### Configuration from local_auth
+### local_auth configuration
 
 In case you want to work with biometrics, you have to go through all the steps
 to configure local_auth for [android](https://pub.dev/packages/local_auth#android-integration)
@@ -217,3 +221,37 @@ You can see the list of all potential exceptions in lib/src/exceptions.
 
 Pin code controller has `dispose` method which is meant to be called when you call
 dispose method in view class.
+
+## Additional information
+
+### 👀 See also: [pin_ui](https://pub.dev/packages/pin_ui)
+
+[pin_ui package](https://pub.dev/packages/pin_ui) ...</br>
+**pin + pin_ui** are perfect to work together in pair. Combining these two may
+save you days of development and the result will be already perfect even out of
+the box.
+
+<p align="left">
+<a href="https://pub.dev/packages/pin_ui"><img src="https://img.shields.io/pub/v/pin_ui.svg?style=flat&colorB=blue&label=pin_ui pub" alt="Pub"></a>
+<a href="https://github.com/AndreySosnovyy/flutter_pin_code_ui"><img src="https://img.shields.io/github/stars/andreysosnovyy/flutter_pin_code_ui.svg?&style=flat&logo=github&color=red&label=pin_ui" alt="Star on Github"></a>
+</p>
+
+### 📱 Examples
+
+This package has an [example](https://github.com/AndreySosnovyy/flutter_pin_code/tree/main/example)
+project in it, covering main use cases you may want to try out. Feel free to use it
+as a playground or a template of PIN code feature core for your applications!
+
+You can also [share your own examples](#-contributing) for this section.
+
+### 🛠 Contributing
+
+You have an interesting open source example to share with community? Found a bug,
+or want to suggest an idea on what feature to add next? You're always welcome!
+Fell free to open
+an [issue](https://github.com/AndreySosnovyy/flutter_pin_code/issues)
+or [pull request](https://github.com/AndreySosnovyy/flutter_pin_code/pulls)
+in [GitHub repository](https://github.com/AndreySosnovyy/flutter_pin_code)!
+</br>
+</br>
+</br>
