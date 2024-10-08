@@ -1,6 +1,12 @@
 [//]: # (TODO: add intro image)
 
-**pin** package contains all the backend logic any Flutter application may need 
+**pin** package contains all the backend logic any Flutter application may need:
+
+- handle **PIN code** (set, update, test, remove)
+- **biometrics** is also included
+- 2 types of easy to configure **timeouts**
+- ability to **request again** the PIN if the app was in background for too long
+- **skip PIN** checker to not disturb user
 
 If you are also interested in fast implementation of PIN codd related UI, then check
 out **pin_ui** package.
@@ -14,42 +20,52 @@ out **pin_ui** package.
 
 ### Pin
 
-The package takes responsibility of storing pin code and provides API for
-working with it: testing, setting, removing, etc.
+The package provides a controller to handle PIN code lifecycle. It has all the
+necessary methods to set, update, remove, test.</br>
+> **_NOTE:_** In this package it is called **to test** PIN. Means to validate it,
+> check if it is correct.
 
 ### Biometrics
 
-This package uses features from [local_auth](https://pub.dev/packages/local_auth)
-handling biometrics. Biometrics may only work on real devices! Using
-PinCodeController you can check if biometrics is available on current device,
-set it if so, test it, remove.
+This package uses [**local_auth**](https://pub.dev/packages/local_auth) for handling
+biometrics. Using PinCodeController you can check if biometrics is available on
+current device, set it if so, test it, remove.
+
+> **_NOTE:_** Biometrics may only work on **real devices**!
 
 Also don't forget to [configure your app](#configuration-from-local_auth)
 for using biometrics.
 
 ### Timeouts
 
-Developer can set the configuration that will limit amount of attempts for user
-to enter pin code if needed. By default, this amount is infinite.
+Developer can set the configuration that will **limit the amount of attempts** for user
+to enter PIN code. By default, this amount is **infinite**.
 
-There are two types of timeout configurations: refreshable and non-refreshable.
-The first one also gives user ability to enter pin code infinite number of times,
-but protecting from brute-force. The second one only gives user predetermined
-number of attempts, and then it is meant to log them out automatically.
+There are two types of timeout configurations: **refreshable** and
+**non-refreshable**.</br>
+The first type gives the user ability to enter pin code infinite number of times,
+but protects from brute-force.</br>
+The second type only gives user predetermined amount of attempts. After they have been
+used, current user session must be terminated and the user navigated to start a new
+sign-in process to proof their identity.
 
 ### Request Again
 
-Request Again feature brings more protections for your app! </br>
-It allows to preconfigure (set once be developer) or configure somewhere in
-app settings (by user in runtime) rules that will request pin code again
-after the app is being open from background.
+Request Again feature brings **more protection** for your app!</br>
+It allows to preconfigure (set once by developer in advance) or configure somewhere
+in app settings (by user in runtime) a single simple rule: if the app was in the
+background for some time, user will have to go through PIN code screen again in case
+to go back to the app.
 
 ### Skip Pin
 
-This feature is here to make user experience more convenient and smooth.</br>
-If you as a developer or user by himself (if you allow so) wants to set a
-time in which there will be no need of entering pin code after doing it once,
-there is also a special configuration for this case!
+This feature is here to make user **experience more smooth and non-distracting**.
+Why ask for PIN code if it was just entered a few minutes ago?</br>
+Controller can be configured in such way that it will count amount of time gone from
+last PIN code entering. If it is less than allowed duration without entering,
+the next one can be skipped.</br>
+It can be configured by a developer in advance or by user in runtime if such setting
+presented somewhere in app settings.
 
 ## Getting started
 
@@ -64,19 +80,21 @@ Be sure to configure using guide for appropriate local_auth dependency version i
 
 ### Controller initialization
 
-Before calling any method in pin code controller, it must be initialized!</br>
+Before calling any method in pin code controller, it must be initialized:
+
+```dart
+final controller = PinCodeController();
+await controller.initialize(); // <-- async initialization method 
+```
 
 ### Request Again configuration
 
-#### Set onAppLifeCycleStateChanged
+Controller handles app life cycle changes. The only thing developer must do is to
+provide these changes when they happen. To do so you can add `WidgetsBindingObserver`
+mixin somewhere in your app to override these methods: `initState`,
+`didChangeAppLifecycleState`,`dispose`. Where you have to do 3 things:
 
-Pin code controller handles app life cycle changes. The only thing developer
-must do is to provide these changes when they happen. To do so you can add
-`WidgetsBindingObserver` mixin to your app and override these 3 methods:
-`initState`, `didChangeAppLifecycleState`, `dispose`. Where you have to do
-3 things:
-
-1) add observer:
+1) Add an observer:
 
 ```dart
 @override
@@ -86,17 +104,17 @@ void initState() {
 }
 ```
 
-2) provide states to controller:
+2) Provide states to controller:
 
 ```dart
 @override
 void didChangeAppLifecycleState(AppLifecycleState state) {
-  myPinCodeController.onAppLifecycleStateChanged(state);
+  controller.onAppLifecycleStateChanged(state);
   super.didChangeAppLifecycleState(state);
 }
 ```
 
-3) dispose it:
+3) Dispose it:
 
 ```dart
 @override
@@ -106,21 +124,18 @@ void dispose() {
 }
 ```
 
-#### Reset callback
-
-If you use this feature you have to always set onRequestAgain on app start
-and everytime you set config in controller!</br>
-You can do something like this in your app class:
+</br>If you use this Request again feature you have to _always_ set `onRequestAgain`
+callback when your app starts and also _everytime_ you set a new config in controller.</br>
+Fox example you can do it inside `initState` in your app's class:
 
 ```dart
 @override
 void initState() {
   super.initState();
-  if (DI.pinCodeController.requestAgainConfig == null) return;
+  if (controller.requestAgainConfig == null) return;
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     await myPinCodeController.setRequestAgainConfig(
-        myPinCodeController.requestAgainConfig!
-            .copyWith(onRequestAgain: requestAgainCallback));
+        controller.requestAgainConfig!.copyWith(onRequestAgain: requestAgainCallback));
   });
 }
 ```
@@ -129,25 +144,26 @@ void initState() {
 
 ### Logging
 
-You can turn on logging while debugging when creating instance of `PinCodeController`
-by providing `logsEnabled` parameter. Logs are disabled by default.
+When creating an instance of `PinCodeController` pass `logsEnabled` parameter equal
+to `true`. It is helpful for debugging purposes as all happening events inside
+the controller are covered with logs. Disabled by default.
 
 ### Configuring
 
-As mentioned before you can configure 3 different features in `PinCodeController`.
-Two of them are configurable in runtime (means it can be both preset by developer or
-by user if developer allow so in app settings or any other place): Request Again
-and Skip Pin. Timeout feature can only be set in advance but not while app is
-already running.
+There are 3 features to be configured inside `PinCodeController`. Two of them are
+**configurable in runtime**. Means it can be both set by developer and by user (if
+developer allows doing so in app settings). These are **Request Again** and
+**Skip Pin**. And the **Timeout** feature can only be **set in advance**, but not
+while app is already running.
 
-For every feature there are separate config class: `PinCodeRequestAgainConfig`,
-`SkipPinCodeConfig` and `PinCodeTimeoutConfig`.
+For every feature there are a separate configuration class:
+`PinCodeRequestAgainConfig`, `SkipPinCodeConfig` and `PinCodeTimeoutConfig`.
 
 #### Timeouts
 
-Timeout configuration class has 2 named constructors: `PinCodeTimeoutConfig.notRefreshable`
-and `PinCodeTimeoutConfig.refreshable`. Difference between these two described in
-[introduction section](#timeouts).
+Timeout configuration class has 2 named constructors: 
+PinCodeTimeoutConfig.notRefreshable` and `PinCodeTimeoutConfig.refreshable`.
+Difference between these two described in [introduction section](#timeouts).
 
 Both of these requires `timeouts` map configuration and some other documented callbacks.
 Map containing number of tries before every timeout where key is number of seconds
