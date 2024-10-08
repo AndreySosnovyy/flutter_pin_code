@@ -3,6 +3,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
+import 'package:local_auth_darwin/local_auth_darwin.dart';
 import 'package:pin/src/exceptions/cant_set_biometrics_without_pin_exception.dart';
 import 'package:pin/src/exceptions/cant_test_biometrics_exception.dart';
 import 'package:pin/src/exceptions/cant_test_pin_exception.dart';
@@ -14,10 +18,6 @@ import 'package:pin/src/features/skip_pin/skip_pin_config.dart';
 import 'package:pin/src/features/timeout/attempts_handler.dart';
 import 'package:pin/src/features/timeout/timeout_config.dart';
 import 'package:pin/src/features/timeout/timeout_handler.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:local_auth_android/local_auth_android.dart';
-import 'package:local_auth_darwin/local_auth_darwin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kDefaultPinCodeKey = 'flutter_pin_code.default_key';
@@ -570,7 +570,7 @@ class PinCodeController {
         biometricOnly: true,
       ),
       authMessages: authMessages ??
-          const <AuthMessages>[
+          const [
             IOSAuthMessages(),
             AndroidAuthMessages(),
           ],
