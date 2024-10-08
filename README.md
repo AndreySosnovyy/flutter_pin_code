@@ -255,7 +255,7 @@ await controller.setSkipPinCodeConfig(
 
 ### </br>Testing PIN code and biometrics
 
-If PIN code is set you can **test** (check is correct) it by calling `testPinCode`
+If PIN code is set you can **test** (check if correct) it by calling `testPinCode`
 method. It will return `true` if it is correct and `false` if it is not.</br>
 The same goes for biometrics, but it is called `testBiometrics`.
 
