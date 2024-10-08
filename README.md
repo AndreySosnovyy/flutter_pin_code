@@ -248,7 +248,12 @@ dispose method in view class.
 
 ### 👀 See also: [pin_ui](https://pub.dev/packages/pin_ui)
 
-[pin_ui package](https://pub.dev/packages/pin_ui) ...</br>
+[pin_ui package](https://pub.dev/packages/pin_ui) provides 2 core widgets for
+every PIN code screen: highly customizable keyboard called `Pinpad` and `PinIndicator`
+with tons of pre-made animations to use in one line of code.</br>
+
+<img src="https://raw.githubusercontent.com/AndreySosnovyy/flutter_pin_code_ui/refs/heads/assets/pinpad_pinindicator_demo.gif" alt="" width="320"/>
+
 **pin + pin_ui** are perfect to work together in pair. Combining these two may
 save you days of development and the result will be already perfect even out of
 the box.
