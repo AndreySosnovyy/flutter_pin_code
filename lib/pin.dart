@@ -1,4 +1,4 @@
-library flutter_pin_code;
+library;
 
 export 'src/features/request_again/request_again_config.dart';
 export 'src/features/timeout/timeout_config.dart';

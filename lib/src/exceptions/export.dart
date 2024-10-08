@@ -1,4 +1,4 @@
-library flutter_pin_code;
+library;
 
 export 'cant_return_timeout_exception.dart';
 export 'cant_set_biometrics_without_pin_exception.dart';
