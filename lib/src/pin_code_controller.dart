@@ -331,6 +331,8 @@ class PinCodeController {
     return true;
   }
 
+  // TODO(Sosnovyy): check why there is no canTestBiometrics method
+
   /// Checks if pin code can be skipped because of skip pin config
   bool get canSkipPinCodeNow {
     _verifyInitialized();

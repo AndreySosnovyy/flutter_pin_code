@@ -72,11 +72,11 @@ presented somewhere in app settings.
 ### local_auth configuration
 
 In case you want to work with biometrics, you have to go through all the steps
-to configure local_auth for [android](https://pub.dev/packages/local_auth#android-integration)
+to configure **local_auth** for [android](https://pub.dev/packages/local_auth#android-integration)
 and [ios](https://pub.dev/packages/local_auth#ios-integration)! Otherwise, there
 will be unexpected app behavior and crushes when you call biometrics-related methods.
 Be sure to configure using guide for appropriate local_auth dependency version in
-**pin**'s pubspec.yaml!
+**pin**'s [pubspec.yaml](https://github.com/AndreySosnovyy/flutter_pin_code/blob/main/pubspec.yaml)!
 
 ### Controller initialization
 
@@ -148,87 +148,93 @@ When creating an instance of `PinCodeController` pass `logsEnabled` parameter eq
 to `true`. It is helpful for debugging purposes as all happening events inside
 the controller are covered with logs. Disabled by default.
 
-### Configuring
-
-There are 3 features to be configured inside `PinCodeController`. Two of them are
-**configurable in runtime**. Means it can be both set by developer and by user (if
-developer allows doing so in app settings). These are **Request Again** and
-**Skip Pin**. And the **Timeout** feature can only be **set in advance**, but not
-while app is already running.
-
-For every feature there are a separate configuration class:
-`PinCodeRequestAgainConfig`, `SkipPinCodeConfig` and `PinCodeTimeoutConfig`.
-
-#### Timeouts
+### Configure Timeouts
 
 Timeout configuration class has 2 named constructors: 
 PinCodeTimeoutConfig.notRefreshable` and `PinCodeTimeoutConfig.refreshable`.
 Difference between these two described in [introduction section](#timeouts).
 
-Both of these requires `timeouts` map configuration and some other documented callbacks.
-Map containing number of tries before every timeout where key is number of seconds
-and value is number of tries. If all timeouts are over, and they are not refreshable,
-then onMaxTimeoutsReached will be called. If timeouts are refreshable and the
-last configured timeout is over, user will get one attempt at a time.
-This logic will repeat infinitely!
+Both of these requires `timeouts` map configuration and a few callbacks
+(`onTimeoutEnded`, `onTimeoutStarted` and `onMaxTimeoutsReached` for non-refreshable
+configuration). The **map** contains amount of attempts (**value**) before every
+timeout in seconds (**key**).</br>
+If all timeouts are non-refreshable and all are over, then `onMaxTimeoutsReached`
+will be triggered.</br>
+If timeouts are refreshable and all are over, then the last **pair**(key, value)
+will be used repeatedly, but user will only get one attempt at a time.  
 
 Some more requirements:
 
-- Max value is 21600 seconds (6 hours).
-- The first timeout duration is always 0!
-- The order is not important, but it's easier to understand if you put timeouts
-  in direct order. The important factor is timeout duration:
-  shorter timeout can not be used after a longer one. It will always go one by one
-  depending on current timeout duration starting from 0.
+- **Max duration is 6 hours** (21600 seconds).
+- The **first** timeout duration is **always 0**!
+- The **order is not important**, but it's easier to understand if you put timeouts
+  in direct order. The important factor is timeout duration: shorter timeout can not
+  be used after a longer one. It will always go one by one depending on current
+  timeout duration starting from 0.
 
-Example: </br>
-{ </br>
-&nbsp;&nbsp;&nbsp;&nbsp;0: 3, // initially you have 3 tries before falling into 60 seconds timeout </br>
-&nbsp;&nbsp;&nbsp;&nbsp;60: 2, // another 2 tries after 60 seconds timeout </br>
-&nbsp;&nbsp;&nbsp;&nbsp;600: 1, // another try after 600 seconds timeout </br>
+Example:
+```dart
+{
+  0: 3, // initially you have 3 tries before falling into 60 seconds timeout
+  60: 2, // another 2 tries after 60 seconds timeout
+  600: 1, // another try after 600 seconds timeout
+  // In case of refreshable timeouts you will get one attempt after every 600 seconds
 }
+```
 
-#### Request Again
+> **_NOTE:_** The **Timeouts** feature can only be **set in advance**, but not
+> while app is already running.
+
+### Configure Request Again
 
 Request Again configuration class constructor requires `secondsBeforeRequestingAgain`.
 This main parameter determines how long user can be in background without entering
-pin code again after going to foreground.
+PIN code again after going to foreground.
 
-If 0 seconds provided, it will require pin code every time.
+If **0 seconds** passed, it will require PIN code every time.
 
-Actual `onRequestAgain` callback (which is called when configured time condition
-is true) can be set later after. But it must be for sure set before very first
+The actual `onRequestAgain` callback, which is called when configured time condition
+is true, can be set later after. But it must be for sure set before very first
 potential Request Again call.
+
+> **_NOTE:_** The **Request again** feature can be configured both by developer
+> in advance and by user in runtime in application settings if there is such
+> setting presented.
 
 #### Skip Pin
 
-Skip Pin configuration requires duration in which potentially there will be no
-need to enter pin code.
+Skip Pin configuration requires the duration in which potentially there will be no
+need to enter PIN code.
 
-Take attention that you as a developer must handle it manually by checking
-`canSkipPinCodeNow` getter. Controller can only automatically handle skips in while
-Requesting Again if you set `forcedForRequestAgain` to false (true by default)
-in configuration.
+Take attention that you as a developer must handle it **manually** by checking
+`canSkipPinCodeNow` getter value.</br>
+Controller can only automatically handle skips for Request Again if you
+set `forcedForRequestAgain` to `false` (enabled by default) in configuration.
 
-### Testing
+> **_NOTE:_** The **Skip pin** feature can be configured both by developer
+> in advance and by user in runtime in application settings if there is such
+> setting presented.
 
-If previously you have set pin and maybe event biometrics you can test them using
-async methods `testPinCode` and `testBiometrics`. They return `true` if test was
-successful and `false` in any other case.
-You may also want to check if testing is available at the moment. It is possible
-by checking via `canTestPinCode` method or other getters from `PinCodeController` class.
+### Testing PIN code and biometrics
+
+If PIN code is set you can **test** (check is correct) it by calling `testPinCode`
+method. It will return `true` if it is correct and `false` if it is not.</br>
+The same goes for biometrics, but it is called `testBiometrics`.
+
+There also `canTestPinCode` and `isPinSet` which can be called to check if it is set,
+if it can be tested at this moment and so on. 
 
 ### Reacting to events (stream)
 
-You may need to react to pin code related events (such as successfully entered pin,
-newly set configuration or timeout start) for UI part of the app: updating view,
-navigation, showing toast, etc. One way for implementing that is by listening to
-stream named `eventsStream` in `PinCodeController`. You can find the list of all
-events can be thrown in this stream in `PinCodeEvents` enum.
+You may need to react to PIN code related events (such as successfully entered pin,
+newly set configuration or timeout start) in UI: updating view, navigating, showing
+toast, etc. One way for implementing that is by **listening to stream** named
+`eventsStream` from `PinCodeController`. You can find the list of all events can be
+thrown in this stream in enum called `PinCodeEvents`.
 
 ### Exceptions
 
-In runtime if you do something wrong and exception will be thrown. So it is better
+In runtime if you do something wrong an exception will be thrown. So it is better
 to wrap calling some controller methods in try-catch blocks and handle them properly.
 
 You can see the list of all potential exceptions in lib/src/exceptions.
