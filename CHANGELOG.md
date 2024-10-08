@@ -1,3 +1,7 @@
+## 0.1.1
+
+- Fix platform support
+
 ## 0.1.0
 
 - Update dependencies

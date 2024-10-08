@@ -1,12 +1,25 @@
 name: pin
 description: "Package containing all necessary backend logic for implementing PIN code feature in Flutter applications. And even more..."
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/AndreySosnovyy/flutter_pin_code
 issue_tracker: https://github.com/AndreySosnovyy/flutter_pin_code/issues
 topics: [pin, pin-code, security, biometrics, face-id]
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: local_auth_android
+      ios:
+        default_package: local_auth_darwin
+      macos:
+        default_package: local_auth_darwin
+      windows:
+        default_package: local_auth_windows
 
 dependencies:
   flutter:
@@ -16,6 +29,7 @@ dependencies:
   local_auth_android: ^1.0.46
   local_auth_darwin: ^1.4.1
   shared_preferences: ^2.3.2
+  local_auth_windows: ^1.0.11
   logger: ^2.4.0
 
 dev_dependencies:
