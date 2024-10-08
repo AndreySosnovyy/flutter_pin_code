@@ -1,3 +1,4 @@
+// ignore_for_file: depend_on_referenced_packages
 import 'dart:async';
 import 'dart:convert';
 
@@ -15,6 +16,8 @@ import 'package:pin/src/features/timeout/timeout_config.dart';
 import 'package:pin/src/features/timeout/timeout_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
+import 'package:local_auth_darwin/local_auth_darwin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kDefaultPinCodeKey = 'flutter_pin_code.default_key';
@@ -540,6 +543,13 @@ class PinCodeController {
 
     /// Message for requesting face id use.
     required String faceIdReason,
+
+    /// Custom messages in the dialogs
+    ///
+    /// import this packages to customize it:
+    /// import 'package:local_auth_android/local_auth_android.dart';
+    /// import 'package:local_auth_darwin/local_auth_darwin.dart';
+    Iterable<AuthMessages>? authMessages,
   }) async {
     _verifyInitialized();
     if (!isBiometricsSet) {
@@ -559,6 +569,11 @@ class PinCodeController {
         stickyAuth: true,
         biometricOnly: true,
       ),
+      authMessages: authMessages ??
+          const <AuthMessages>[
+            IOSAuthMessages(),
+            AndroidAuthMessages(),
+          ],
     );
     if (result) {
       logger.d('Biometrics was successfully tested');
