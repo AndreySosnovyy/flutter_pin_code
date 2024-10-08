@@ -252,6 +252,25 @@ await controller.setSkipPinCodeConfig(
 > in advance and by user in runtime in application settings if there is such
 > setting presented.
 
+### </br>Setting PIN code and biometrics
+
+To set PIN use **async** method `setPinCode`.
+
+To set biometrics use **async** method `enableBiometricsIfAvailable`. It doesn't
+require any parameters because biometrics type is chosen automatically by controller.</br>
+There is also a method named `canSetBiometrics` to check if biometrics can be set
+on current device.
+
+```dart
+await controller.setPinCode(pinCodeTextEditingController.text);
+
+if (await controller.canSetBiometrics()) {
+  final biometricsType = await pinCodeController.enableBiometricsIfAvailable();
+  // You can use biometricsType variable to display messages or determine
+  // which icon (Face Id or Fingerprint) to show in UI
+}
+```
+
 ### </br>Testing PIN code and biometrics
 
 If PIN code is set you can **test** (check if correct) it by calling `testPinCode`
