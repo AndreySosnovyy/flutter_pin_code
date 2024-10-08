@@ -221,8 +221,8 @@ If PIN code is set you can **test** (check is correct) it by calling `testPinCod
 method. It will return `true` if it is correct and `false` if it is not.</br>
 The same goes for biometrics, but it is called `testBiometrics`.
 
-There also `canTestPinCode` and `isPinSet` which can be called to check if it is set,
-if it can be tested at this moment and so on. 
+There also `canTestPinCode`, `isPinSet` and `isBiometricsSet` which can be called
+to check if it is set, if it can be tested at this moment and so on. 
 
 ### </br>Reacting to events (stream)
 
