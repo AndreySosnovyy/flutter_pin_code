@@ -176,7 +176,6 @@ Some more requirements:
   be used after a longer one. It will always go one by one depending on current
   timeout duration starting from 0.
 
-Example:
 ```dart
 final timeoutConfig = PinCodeTimeoutConfig.notRefreshable(
   onTimeoutEnded: () {
