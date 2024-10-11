@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Add current timeout duration getter
+
 ## 0.1.1
 
 - Fix platform support

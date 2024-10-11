@@ -399,6 +399,11 @@ class PinCodeController {
     return _timeoutHandler?.isTimeoutRunning ?? false;
   }
 
+  /// Return remaining duration for current timeout is any. Else return null.
+  Duration? get currentTimeoutRemainingDuration {
+    return _timeoutHandler?.currentTimeoutRemainingDuration;
+  }
+
   /// Checks if provided pin matches the current set one.
   ///
   /// If pin is valid, returns true and resets timeouts to initial state
