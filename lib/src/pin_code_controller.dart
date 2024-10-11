@@ -28,6 +28,7 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
+// TODO(Sosnovyy): write and read timeouts every time from disk
 /// {@template flutter_pin_code.pin_code_controller}
 /// Controller for working with pin code related features.
 /// {@endtemplate}
