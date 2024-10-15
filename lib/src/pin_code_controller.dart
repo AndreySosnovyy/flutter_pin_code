@@ -29,7 +29,6 @@ const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
 // TODO(Sosnovyy): write and read timeouts every time from disk
-// TODO(Sosnovyy): add getter for available biometrics type
 /// {@template flutter_pin_code.pin_code_controller}
 /// Controller for working with pin code related features.
 /// {@endtemplate}
