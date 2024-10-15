@@ -1,6 +1,7 @@
 ## 0.3.0
 
 - Make canSetBiometrics method synchronous
+- Add availableBiometrics getter
 
 ## 0.2.0
 

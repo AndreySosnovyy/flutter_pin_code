@@ -162,6 +162,14 @@ class PinCodeController {
     return _canSetBiometrics;
   }
 
+  late final BiometricsType _availableBiometrics;
+
+  /// Returns the type of biometrics available on this device.
+  BiometricsType get availableBiometrics {
+    _verifyInitialized();
+    return _availableBiometrics;
+  }
+
   /// Sets request again config and writes it in prefs.
   ///
   /// Provide null to remove config.
@@ -309,6 +317,7 @@ class PinCodeController {
       _canSetBiometrics = _currentBiometrics != BiometricsType.none
           ? true
           : await _fetchCanSetBiometrics();
+      _availableBiometrics = await _fetchAvailableBiometrics();
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
@@ -501,6 +510,19 @@ class PinCodeController {
         (await _localAuthentication.getAvailableBiometrics()).isNotEmpty;
   }
 
+  Future<BiometricsType> _fetchAvailableBiometrics() async {
+    final availableNativeTypes =
+        await _localAuthentication.getAvailableBiometrics();
+    if (availableNativeTypes.contains(BiometricType.face)) {
+      return BiometricsType.face;
+    } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
+        availableNativeTypes.contains(BiometricType.strong) ||
+        availableNativeTypes.contains(BiometricType.weak)) {
+      return BiometricsType.fingerprint;
+    }
+    return BiometricsType.none;
+  }
+
   /// Returns true if biometrics is set and can be tested by user.
   bool get isBiometricsSet {
     _verifyInitialized();
@@ -519,20 +541,13 @@ class PinCodeController {
     if (!await _localAuthentication.isDeviceSupported()) {
       return BiometricsType.none;
     }
-    final availableNativeTypes =
-        await _localAuthentication.getAvailableBiometrics();
-    if (availableNativeTypes.contains(BiometricType.face)) {
-      await _setBiometricsType(BiometricsType.face);
-      logger.d('Face ID was successfully set as biometrics type');
-      return BiometricsType.face;
-    } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
-        availableNativeTypes.contains(BiometricType.strong) ||
-        availableNativeTypes.contains(BiometricType.weak)) {
-      await _setBiometricsType(BiometricsType.fingerprint);
-      logger.d('Fingerprint was successfully set as biometrics type');
-      return BiometricsType.fingerprint;
+    if (_availableBiometrics == BiometricsType.none) {
+      return _availableBiometrics;
+    } else {
+      await _setBiometricsType(_availableBiometrics);
+      logger.d('$_availableBiometrics was successfully set as biometrics type');
+      return _availableBiometrics;
     }
-    return BiometricsType.none;
   }
 
   /// Disables biometrics.
