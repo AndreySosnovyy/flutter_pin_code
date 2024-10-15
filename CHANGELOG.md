@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Make canSetBiometrics method synchronous
+
 ## 0.2.0
 
 - Add current timeout duration getter

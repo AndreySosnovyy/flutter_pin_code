@@ -151,6 +151,17 @@ class PinCodeController {
   /// {@endtemplate}
   PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
+  late final bool _canSetBiometrics;
+
+  /// Returns true if biometrics are available on the device and can be set.
+  ///
+  /// Call this method before calling enableBiometricsIfAvailable() to check if
+  /// you should ask user to use biometrics.
+  bool get canSetBiometrics {
+    _verifyInitialized();
+    return _canSetBiometrics;
+  }
+
   /// Sets request again config and writes it in prefs.
   ///
   /// Provide null to remove config.
@@ -295,6 +306,9 @@ class PinCodeController {
         return await clear();
       }
       _currentBiometrics = await _fetchBiometricsType();
+      _canSetBiometrics = _currentBiometrics != BiometricsType.none
+          ? true
+          : await _fetchCanSetBiometrics();
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
@@ -481,12 +495,7 @@ class PinCodeController {
     return BiometricsType.values.byName(name);
   }
 
-  /// Returns true if biometrics are available on the device and can be set.
-  ///
-  /// Call this method before calling enableBiometricsIfAvailable() to check if
-  /// you should ask user to use biometrics.
-  Future<bool> canSetBiometrics() async {
-    _verifyInitialized();
+  Future<bool> _fetchCanSetBiometrics() async {
     return await _localAuthentication.isDeviceSupported() &&
         await _localAuthentication.canCheckBiometrics &&
         (await _localAuthentication.getAvailableBiometrics()).isNotEmpty;
