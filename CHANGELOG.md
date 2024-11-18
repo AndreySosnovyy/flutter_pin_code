@@ -2,6 +2,7 @@
 
 - Make canSetBiometrics method synchronous
 - Add availableBiometrics getter
+- Fix timeouts reading from local storage
 
 ## 0.2.0
 
