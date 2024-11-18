@@ -50,8 +50,7 @@ class AttemptsHandler {
   /// This method must be called before any other method in this class.
   Future<void> initialize() async {
     final timeoutsMapHash = _prefs.getString(_storageTimeoutsMapHashKey);
-    if (timeoutsMapHash == null ||
-        timeoutsMapHash != timeoutsMap.toString()) {
+    if (timeoutsMapHash == null || timeoutsMapHash != timeoutsMap.toString()) {
       await _prefs.setString(
           _storageTimeoutsMapHashKey, timeoutsMap.toString());
     }
