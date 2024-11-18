@@ -92,7 +92,7 @@ class _SettingsViewState extends State<SettingsView> {
                 }
                 if (pinCodeController.currentBiometrics ==
                     BiometricsType.none) {
-                  if (await pinCodeController.canSetBiometrics()) {
+                  if (pinCodeController.canSetBiometrics) {
                     final biometricsType =
                         await pinCodeController.enableBiometricsIfAvailable();
                     if (biometricsType == BiometricsType.none) {
@@ -139,9 +139,11 @@ class _SettingsViewState extends State<SettingsView> {
                                     type == RequestAgainType.disabled
                                         ? null
                                         : PinCodeRequestAgainConfig(
-                                      secondsBeforeRequestingAgain: type.seconds!,
-                                      onRequestAgain: requestAgainCallback,
-                                    ));
+                                            secondsBeforeRequestingAgain:
+                                                type.seconds!,
+                                            onRequestAgain:
+                                                requestAgainCallback,
+                                          ));
                                 showToast(
                                     'Selected ${type.title} option for Request Again');
                               },

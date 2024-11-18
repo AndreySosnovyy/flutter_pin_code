@@ -28,6 +28,7 @@ const String _kSkipPinConfigKey = 'flutter_pin_code.skip_pin_config';
 const String _kBiometricsTypeKeySuffix = '.biometrics';
 const String _kBackgroundTimestampKey = 'flutter_pin_code.background_timestamp';
 
+// TODO(Sosnovyy): write and read timeouts every time from disk
 /// {@template flutter_pin_code.pin_code_controller}
 /// Controller for working with pin code related features.
 /// {@endtemplate}
@@ -148,6 +149,25 @@ class PinCodeController {
   /// Configurable by developer in advance or in runtime by user (if app allows so)!
   /// {@endtemplate}
   PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
+
+  late final bool _canSetBiometrics;
+
+  /// Returns true if biometrics are available on the device and can be set.
+  ///
+  /// Call this method before calling enableBiometricsIfAvailable() to check if
+  /// you should ask user to use biometrics.
+  bool get canSetBiometrics {
+    _verifyInitialized();
+    return _canSetBiometrics;
+  }
+
+  late final BiometricsType _availableBiometrics;
+
+  /// Returns the type of biometrics available on this device.
+  BiometricsType get availableBiometrics {
+    _verifyInitialized();
+    return _availableBiometrics;
+  }
 
   /// Sets request again config and writes it in prefs.
   ///
@@ -293,6 +313,10 @@ class PinCodeController {
         return await clear();
       }
       _currentBiometrics = await _fetchBiometricsType();
+      _canSetBiometrics = _currentBiometrics != BiometricsType.none
+          ? true
+          : await _fetchCanSetBiometrics();
+      _availableBiometrics = await _fetchAvailableBiometrics();
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
@@ -354,9 +378,7 @@ class PinCodeController {
   }
 
   Future<String?> _fetchPinCode() async {
-    final pin = await _secureStorage.read(key: _storageKey);
-    _currentPin = pin;
-    return pin;
+    return await _secureStorage.read(key: _storageKey);
   }
 
   /// Returns the amount of tries left before falling into another timeout.
@@ -481,15 +503,23 @@ class PinCodeController {
     return BiometricsType.values.byName(name);
   }
 
-  /// Returns true if biometrics are available on the device and can be set.
-  ///
-  /// Call this method before calling enableBiometricsIfAvailable() to check if
-  /// you should ask user to use biometrics.
-  Future<bool> canSetBiometrics() async {
-    _verifyInitialized();
+  Future<bool> _fetchCanSetBiometrics() async {
     return await _localAuthentication.isDeviceSupported() &&
         await _localAuthentication.canCheckBiometrics &&
         (await _localAuthentication.getAvailableBiometrics()).isNotEmpty;
+  }
+
+  Future<BiometricsType> _fetchAvailableBiometrics() async {
+    final availableNativeTypes =
+        await _localAuthentication.getAvailableBiometrics();
+    if (availableNativeTypes.contains(BiometricType.face)) {
+      return BiometricsType.face;
+    } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
+        availableNativeTypes.contains(BiometricType.strong) ||
+        availableNativeTypes.contains(BiometricType.weak)) {
+      return BiometricsType.fingerprint;
+    }
+    return BiometricsType.none;
   }
 
   /// Returns true if biometrics is set and can be tested by user.
@@ -510,20 +540,13 @@ class PinCodeController {
     if (!await _localAuthentication.isDeviceSupported()) {
       return BiometricsType.none;
     }
-    final availableNativeTypes =
-        await _localAuthentication.getAvailableBiometrics();
-    if (availableNativeTypes.contains(BiometricType.face)) {
-      await _setBiometricsType(BiometricsType.face);
-      logger.d('Face ID was successfully set as biometrics type');
-      return BiometricsType.face;
-    } else if (availableNativeTypes.contains(BiometricType.fingerprint) ||
-        availableNativeTypes.contains(BiometricType.strong) ||
-        availableNativeTypes.contains(BiometricType.weak)) {
-      await _setBiometricsType(BiometricsType.fingerprint);
-      logger.d('Fingerprint was successfully set as biometrics type');
-      return BiometricsType.fingerprint;
+    if (_availableBiometrics == BiometricsType.none) {
+      return _availableBiometrics;
+    } else {
+      await _setBiometricsType(_availableBiometrics);
+      logger.d('$_availableBiometrics was successfully set as biometrics type');
+      return _availableBiometrics;
     }
-    return BiometricsType.none;
   }
 
   /// Disables biometrics.

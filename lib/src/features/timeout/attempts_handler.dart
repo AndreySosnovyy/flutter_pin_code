@@ -50,13 +50,12 @@ class AttemptsHandler {
   /// This method must be called before any other method in this class.
   Future<void> initialize() async {
     final timeoutsMapHash = _prefs.getString(_storageTimeoutsMapHashKey);
-    if (timeoutsMapHash == null ||
-        timeoutsMapHash != timeoutsMap.hashCode.toString()) {
+    if (timeoutsMapHash == null || timeoutsMapHash != timeoutsMap.toString()) {
       await _prefs.setString(
-          _storageTimeoutsMapHashKey, timeoutsMap.hashCode.toString());
+          _storageTimeoutsMapHashKey, timeoutsMap.toString());
     }
     final rawPool = _prefs.getString(_storageAttemptsPoolKey);
-    if (rawPool == null || timeoutsMapHash != timeoutsMap.hashCode.toString()) {
+    if (rawPool == null || timeoutsMapHash != timeoutsMap.toString()) {
       currentAttempts = Map.from(timeoutsMap);
     } else {
       currentAttempts = (json.decode(rawPool))
