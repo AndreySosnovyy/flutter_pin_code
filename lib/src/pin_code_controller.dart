@@ -109,7 +109,8 @@ class PinCodeController {
   DateTime? _lastTestTimestamp;
 
   /// Stream controller for pin events.
-  final _pinEventsStreamController = StreamController<PinCodeEvents>();
+  final _pinEventsStreamController =
+      StreamController<PinCodeEvents>.broadcast();
 
   /// Pin events stream for listening.
   Stream<PinCodeEvents> get eventsStream =>

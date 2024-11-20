@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Make controller's events stream broadcast
+
 ## 0.3.0
 
 - Make canSetBiometrics method synchronous
