@@ -354,7 +354,10 @@ This package has an [example](https://github.com/AndreySosnovyy/flutter_pin_code
 project in it, covering main use cases you may want to try out. Feel free to use it
 as a playground or a template of PIN code feature core for your applications!
 
-You can also [share your own examples](#-contributing) for this section.
+Also, there is a [more complete example project](https://github.com/AndreySosnovyy/flutter_pin_example)
+that uses both **pin** and **pin_ui** packages in it. 
+
+You can [share your own examples](#-contributing) for this section.
 
 ### 🛠 Contributing
 

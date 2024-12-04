@@ -1,3 +1,7 @@
+## 0.3.1+1
+
+- Add link to example project
+
 ## 0.3.1
 
 - Make controller's events stream broadcast
