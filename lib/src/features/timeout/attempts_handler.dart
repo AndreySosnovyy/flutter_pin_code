@@ -33,7 +33,7 @@ class AttemptsHandler {
   /// Timeouts configuration from the general config.
   final Map<int, int> timeoutsMap;
 
-  /// Current available attempts map in <seconds, amount> format.
+  /// Current available attempts map in `<seconds, amount>` format.
   late final Map<int, int> currentAttempts;
 
   ///
