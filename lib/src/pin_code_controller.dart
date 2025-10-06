@@ -42,15 +42,23 @@ class PinCodeController {
     SkipPinCodeConfig? skipPinCodeConfig,
     this.timeoutConfig,
     this.iterateInterval,
+    SharedPreferences? prefs,
+    FlutterSecureStorage? secureStorage,
   })  : _storageKey = '${storageKey ?? _kDefaultPinCodeKey}.',
         _requestAgainConfig = requestAgainConfig,
         _skipPinCodeConfig = skipPinCodeConfig,
+        _providedPrefs = prefs,
+        _providedSecureStorage = secureStorage,
         assert(
           millisecondsBetweenTests >= 0 && millisecondsBetweenTests <= 3000,
           'Milliseconds between tests must be between 0 and 3000',
         ) {
     logger.filter.enabled = logsEnabled;
   }
+
+  final SharedPreferences? _providedPrefs;
+
+  final FlutterSecureStorage? _providedSecureStorage;
 
   late final SharedPreferences _prefs;
 
@@ -151,7 +159,7 @@ class PinCodeController {
   /// {@endtemplate}
   PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
-  late final bool _canSetBiometrics;
+  bool _canSetBiometrics = false;
 
   /// Returns true if biometrics are available on the device and can be set.
   ///
@@ -162,7 +170,7 @@ class PinCodeController {
     return _canSetBiometrics;
   }
 
-  late final BiometricsType _availableBiometrics;
+  BiometricsType _availableBiometrics = BiometricsType.none;
 
   /// Returns the type of biometrics available on this device.
   BiometricsType get availableBiometrics {
@@ -258,8 +266,8 @@ class PinCodeController {
   Future<void> initialize() async {
     assert(!isControllerInitialized, 'Initialization already completed');
     try {
-      _prefs = await SharedPreferences.getInstance();
-      _secureStorage = const FlutterSecureStorage();
+      _prefs = _providedPrefs ?? await SharedPreferences.getInstance();
+      _secureStorage = _providedSecureStorage ?? const FlutterSecureStorage();
       _localAuthentication = LocalAuthentication();
 
       if (isTimeoutConfigured) {
