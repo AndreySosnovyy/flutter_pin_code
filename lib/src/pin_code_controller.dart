@@ -231,7 +231,7 @@ class PinCodeController {
   /// Handles lifecycle state changes for Request again feature.
   Future<void> onAppLifecycleStateChanged(AppLifecycleState state) async {
     _verifyInitialized();
-    if (state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused) {
       await _prefs.setString(
         _storageBackgroundTimestampKey,
         DateTime.now().millisecondsSinceEpoch.toString(),
@@ -242,9 +242,13 @@ class PinCodeController {
           canSkipPinCodeNow) {
         logger.d('Request again was skipped');
         _pinEventsStreamController.add(PinCodeEvents.requestAgainSkipped);
+        await _prefs.remove(_storageBackgroundTimestampKey);
         return;
       }
-      if (requestAgainConfig == null) return;
+      if (requestAgainConfig == null) {
+        await _prefs.remove(_storageBackgroundTimestampKey);
+        return;
+      }
       assert(
         requestAgainConfig!.onRequestAgain != null,
         'Request again callback not set',
@@ -259,6 +263,8 @@ class PinCodeController {
         _pinEventsStreamController.add(PinCodeEvents.requestAgainCalled);
         logger.d('Request again callback was called');
       }
+      // Always clear timestamp after checking
+      await _prefs.remove(_storageBackgroundTimestampKey);
     }
   }
 
