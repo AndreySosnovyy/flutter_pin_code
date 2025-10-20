@@ -512,6 +512,8 @@ class PinCodeController {
 
   /// Returns the type of set biometrics.
   Future<BiometricsType> _fetchBiometricsType() async {
+    final canSetBiometrics = await _fetchCanSetBiometrics();
+    if (!canSetBiometrics) return BiometricsType.none;
     final name = _prefs.getString(_storageKey + _kBiometricsTypeKeySuffix);
     if (name == null) return BiometricsType.none;
     return BiometricsType.values.byName(name);
