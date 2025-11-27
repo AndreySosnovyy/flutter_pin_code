@@ -37,13 +37,15 @@ class SkipPinCodeConfig {
   /// {@endtemplate}
   final bool forcedForRequestAgain;
 
-  /// Creates a copy of the current [SkipPinCodeConfig] with the given duration
+  /// Creates a copy of the current [SkipPinCodeConfig] with the given fields.
   SkipPinCodeConfig copyWith({
     Duration? duration,
+    bool? forcedForRequestAgain,
   }) {
     if (duration != null) SkipConfigUtils._validate(duration: duration);
     return SkipPinCodeConfig(
       duration: duration ?? this.duration,
+      forcedForRequestAgain: forcedForRequestAgain ?? this.forcedForRequestAgain,
     );
   }
 
@@ -76,7 +78,11 @@ class SkipConfigUtils {
 
   /// Validation method for [SkipPinCodeConfig] which throws errors.
   static void _validate({required Duration duration}) {
-    assert(duration.inMinutes <= 30, 'Max skip duration is 30 minutes');
-    assert(!duration.isNegative, 'Duration must be positive and non-zero');
+    if (duration.inMinutes > 30) {
+      throw ArgumentError('Max skip duration is 30 minutes');
+    }
+    if (duration.isNegative || duration == Duration.zero) {
+      throw ArgumentError('Duration must be positive and non-zero');
+    }
   }
 }

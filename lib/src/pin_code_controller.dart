@@ -42,15 +42,23 @@ class PinCodeController {
     SkipPinCodeConfig? skipPinCodeConfig,
     this.timeoutConfig,
     this.iterateInterval,
+    SharedPreferences? prefs,
+    FlutterSecureStorage? secureStorage,
   })  : _storageKey = '${storageKey ?? _kDefaultPinCodeKey}.',
         _requestAgainConfig = requestAgainConfig,
         _skipPinCodeConfig = skipPinCodeConfig,
+        _providedPrefs = prefs,
+        _providedSecureStorage = secureStorage,
         assert(
           millisecondsBetweenTests >= 0 && millisecondsBetweenTests <= 3000,
           'Milliseconds between tests must be between 0 and 3000',
         ) {
     logger.filter.enabled = logsEnabled;
   }
+
+  final SharedPreferences? _providedPrefs;
+
+  final FlutterSecureStorage? _providedSecureStorage;
 
   late final SharedPreferences _prefs;
 
@@ -151,7 +159,7 @@ class PinCodeController {
   /// {@endtemplate}
   PinCodeRequestAgainConfig? get requestAgainConfig => _requestAgainConfig;
 
-  late final bool _canSetBiometrics;
+  bool _canSetBiometrics = false;
 
   /// Returns true if biometrics are available on the device and can be set.
   ///
@@ -162,7 +170,7 @@ class PinCodeController {
     return _canSetBiometrics;
   }
 
-  late final BiometricsType _availableBiometrics;
+  BiometricsType _availableBiometrics = BiometricsType.none;
 
   /// Returns the type of biometrics available on this device.
   BiometricsType get availableBiometrics {
@@ -223,7 +231,7 @@ class PinCodeController {
   /// Handles lifecycle state changes for Request again feature.
   Future<void> onAppLifecycleStateChanged(AppLifecycleState state) async {
     _verifyInitialized();
-    if (state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused) {
       await _prefs.setString(
         _storageBackgroundTimestampKey,
         DateTime.now().millisecondsSinceEpoch.toString(),
@@ -234,9 +242,13 @@ class PinCodeController {
           canSkipPinCodeNow) {
         logger.d('Request again was skipped');
         _pinEventsStreamController.add(PinCodeEvents.requestAgainSkipped);
+        await _prefs.remove(_storageBackgroundTimestampKey);
         return;
       }
-      if (requestAgainConfig == null) return;
+      if (requestAgainConfig == null) {
+        await _prefs.remove(_storageBackgroundTimestampKey);
+        return;
+      }
       assert(
         requestAgainConfig!.onRequestAgain != null,
         'Request again callback not set',
@@ -251,6 +263,8 @@ class PinCodeController {
         _pinEventsStreamController.add(PinCodeEvents.requestAgainCalled);
         logger.d('Request again callback was called');
       }
+      // Always clear timestamp after checking
+      await _prefs.remove(_storageBackgroundTimestampKey);
     }
   }
 
@@ -258,8 +272,8 @@ class PinCodeController {
   Future<void> initialize() async {
     assert(!isControllerInitialized, 'Initialization already completed');
     try {
-      _prefs = await SharedPreferences.getInstance();
-      _secureStorage = const FlutterSecureStorage();
+      _prefs = _providedPrefs ?? await SharedPreferences.getInstance();
+      _secureStorage = _providedSecureStorage ?? const FlutterSecureStorage();
       _localAuthentication = LocalAuthentication();
 
       if (isTimeoutConfigured) {
@@ -308,21 +322,20 @@ class PinCodeController {
       }
 
       _currentPin = await _fetchPinCode();
-      final isPinCodeSet = _prefs.getBool(_storageIsPinCodeSetKey) ?? false;
-      if (!isPinCodeSet && _currentPin != null) {
-        _initCompleter.complete();
-        return await clear();
-      }
       _currentBiometrics = await _fetchBiometricsType();
       _canSetBiometrics = _currentBiometrics != BiometricsType.none
           ? true
           : await _fetchCanSetBiometrics();
       _availableBiometrics = await _fetchAvailableBiometrics();
+
+      _initCompleter.complete();
+
+      final isPinCodeSet = _prefs.getBool(_storageIsPinCodeSetKey) ?? false;
+      if (!isPinCodeSet && _currentPin != null) await clear();
     } on Object catch (e) {
       _initCompleter.completeError(e);
       rethrow;
     }
-    _initCompleter.complete();
     _pinEventsStreamController.add(PinCodeEvents.initializationCompleted);
   }
 
@@ -422,8 +435,9 @@ class PinCodeController {
     return _timeoutHandler?.isTimeoutRunning ?? false;
   }
 
-  /// Return remaining duration for current timeout is any. Else return null.
+  /// Return remaining duration for current timeout if any. Else return null.
   Duration? get currentTimeoutRemainingDuration {
+    _verifyInitialized();
     return _timeoutHandler?.currentTimeoutRemainingDuration;
   }
 
@@ -499,6 +513,8 @@ class PinCodeController {
 
   /// Returns the type of set biometrics.
   Future<BiometricsType> _fetchBiometricsType() async {
+    final canSetBiometrics = await _fetchCanSetBiometrics();
+    if (!canSetBiometrics) return BiometricsType.none;
     final name = _prefs.getString(_storageKey + _kBiometricsTypeKeySuffix);
     if (name == null) return BiometricsType.none;
     return BiometricsType.values.byName(name);
@@ -585,19 +601,20 @@ class PinCodeController {
       throw const CantTestBiometricsException(
           'You need to set biometrics first');
     }
-    late final String reason;
-    if (_currentBiometrics == BiometricsType.fingerprint) {
-      reason = fingerprintReason;
-    } else if (_currentBiometrics == BiometricsType.face) {
-      reason = faceIdReason;
+    final String reason;
+    switch (_currentBiometrics) {
+      case BiometricsType.fingerprint:
+        reason = fingerprintReason;
+      case BiometricsType.face:
+        reason = faceIdReason;
+      case BiometricsType.none:
+        throw const CantTestBiometricsException(
+            'Biometrics type is none, cannot test');
     }
     final result = await _localAuthentication.authenticate(
       localizedReason: reason,
-      options: const AuthenticationOptions(
-        useErrorDialogs: true,
-        stickyAuth: true,
-        biometricOnly: true,
-      ),
+      biometricOnly: true,
+      persistAcrossBackgrounding: true,
       authMessages: authMessages ??
           const [
             IOSAuthMessages(),
