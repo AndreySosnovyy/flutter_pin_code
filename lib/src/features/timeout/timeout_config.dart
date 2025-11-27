@@ -101,7 +101,7 @@ class PinCodeTimeoutConfig {
     assert(
       isRefreshable || callback != null,
       'No onMaxTimeoutsReached callback provided but the configuration is '
-      'refreshable and must have one',
+      'not refreshable and must have one',
     );
     _onMaxTimeoutsReached = callback;
   }

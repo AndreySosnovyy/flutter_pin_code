@@ -435,8 +435,9 @@ class PinCodeController {
     return _timeoutHandler?.isTimeoutRunning ?? false;
   }
 
-  /// Return remaining duration for current timeout is any. Else return null.
+  /// Return remaining duration for current timeout if any. Else return null.
   Duration? get currentTimeoutRemainingDuration {
+    _verifyInitialized();
     return _timeoutHandler?.currentTimeoutRemainingDuration;
   }
 
@@ -600,11 +601,15 @@ class PinCodeController {
       throw const CantTestBiometricsException(
           'You need to set biometrics first');
     }
-    late final String reason;
-    if (_currentBiometrics == BiometricsType.fingerprint) {
-      reason = fingerprintReason;
-    } else if (_currentBiometrics == BiometricsType.face) {
-      reason = faceIdReason;
+    final String reason;
+    switch (_currentBiometrics) {
+      case BiometricsType.fingerprint:
+        reason = fingerprintReason;
+      case BiometricsType.face:
+        reason = faceIdReason;
+      case BiometricsType.none:
+        throw const CantTestBiometricsException(
+            'Biometrics type is none, cannot test');
     }
     final result = await _localAuthentication.authenticate(
       localizedReason: reason,
