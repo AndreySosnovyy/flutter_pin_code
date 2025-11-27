@@ -608,11 +608,8 @@ class PinCodeController {
     }
     final result = await _localAuthentication.authenticate(
       localizedReason: reason,
-      options: const AuthenticationOptions(
-        useErrorDialogs: true,
-        stickyAuth: true,
-        biometricOnly: true,
-      ),
+      biometricOnly: true,
+      persistAcrossBackgrounding: true,
       authMessages: authMessages ??
           const [
             IOSAuthMessages(),
